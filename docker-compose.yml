@@ -5,3 +5,14 @@ services:
         build: ./nginx
         restart: always
         network_mode: "host"
+
+    dev:
+        image: node:8.0.0-alpine
+        ports:
+          - 8080:8080
+        volumes:
+          - .:/src
+          - node_modules:/src/node_modules
+        command: sh -c "cd src &&  npm install && npm run serve"
+volumes:
+    node_modules:
