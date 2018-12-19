@@ -16,9 +16,12 @@ services:
         command: sh -c "cd src &&  npm install && npm run serve"
 
     dev-backend:
-        build: ./backend
+        image: golang:latest
         ports:
           - 3000:3000
+        volumes:
+          - ./backend:/src
+        command: sh -c "cd /src && go get github.com/codegangsta/gin && gin"
 
 volumes:
     node_modules:
