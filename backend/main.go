@@ -22,6 +22,6 @@ func main() {
 
 	r.HandleFunc("/", handler)
 
-	fmt.Println("Listening on port 3001")
-	http.ListenAndServe(":3001", r)
+	fmt.Println("Listening on port 3000")
+	http.ListenAndServe(":3000", r)
 }

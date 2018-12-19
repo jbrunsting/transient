@@ -18,10 +18,10 @@ services:
     dev-backend:
         image: golang:latest
         ports:
-          - 3000:3000
+          - 3000:3001
         volumes:
           - ./backend:/src
-        command: sh -c "cd /src && go get github.com/codegangsta/gin && gin"
+        command: sh -c "cd /src && go get github.com/codegangsta/gin && gin -p 3001 -a 3000 -b ../gin-bin"
 
 volumes:
     node_modules:
