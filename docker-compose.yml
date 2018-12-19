@@ -6,7 +6,7 @@ services:
         restart: always
         network_mode: "host"
 
-    dev:
+    dev-frontend:
         image: node:8.0.0-alpine
         ports:
           - 8080:8080
@@ -14,5 +14,11 @@ services:
           - ./frontend:/src
           - node_modules:/src/node_modules
         command: sh -c "cd src &&  npm install && npm run serve"
+
+    dev-backend:
+        build: ./backend
+        ports:
+          - 3000:3000
+
 volumes:
     node_modules:
