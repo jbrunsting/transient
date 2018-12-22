@@ -1,18 +1,27 @@
 version: '3'
 
 services:
-    db:
+    dev-db:
         build: ./database
+        networks:
+          - dev-dbnet
+        ports:
+          - 5432:5432
+        environment:
+          - POSTGRES_USER=transient
+          - POSTGRES_PASSWORD=password
         restart: always
 
     dev-backend:
         build: ./backend
         ports:
           - 3000:3001
+        networks:
+          - dev-dbnet
         volumes:
           - ./backend:/src
         depends_on:
-          - db
+          - dev-db
 
     dev-frontend:
         build: ./frontend
@@ -28,7 +37,7 @@ services:
         depends_on:
           - dev-backend
 
-    nginx:
+    dev-nginx:
         build: ./nginx
         restart: always
         network_mode: "host"
@@ -38,3 +47,6 @@ services:
 
 volumes:
     node_modules:
+
+networks:
+    dev-dbnet:
