@@ -13,7 +13,7 @@ services:
         volumes:
           - ./frontend:/src
           - node_modules:/src/node_modules
-        command: sh -c "cd src &&  npm install && npm run serve"
+        command: sh -c "cd src && npm install && npm run serve"
 
     dev-backend:
         image: golang:latest
@@ -21,7 +21,7 @@ services:
           - 3000:3001
         volumes:
           - ./backend:/src
-        command: sh -c "cd /src && go get github.com/codegangsta/gin && gin -p 3001 -a 3000 -b ../gin-bin"
+        command: sh -c "cd src && go get github.com/codegangsta/gin && gin -p 3001 -a 3000 -b ../gin-bin"
 
 volumes:
     node_modules:
