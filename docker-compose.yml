@@ -1,27 +1,40 @@
 version: '3'
 
 services:
-    nginx:
-        build: ./nginx
+    db:
+        build: ./database
         restart: always
-        network_mode: "host"
-
-    dev-frontend:
-        image: node:8.0.0-alpine
-        ports:
-          - 8080:8080
-        volumes:
-          - ./frontend:/src
-          - node_modules:/src/node_modules
-        command: sh -c "cd src && npm install && npm run serve"
 
     dev-backend:
-        image: golang:latest
+        build: ./backend
         ports:
           - 3000:3001
         volumes:
           - ./backend:/src
-        command: sh -c "cd src && go get github.com/codegangsta/gin && gin -p 3001 -a 3000 -b ../gin-bin"
+        depends_on:
+          - db
+
+    dev-frontend:
+        build: ./frontend
+        ports:
+          - 8080:8080
+        volumes:
+          - ./frontend/etc:/src/etc
+          - ./frontend/public:/src/public
+          - ./frontend/src:/src/src
+          - ./frontend/package.json:/src/package.json
+          - node_modules:/src/node_modules
+        command: sh -c "cd src && npm install && npm run serve"
+        depends_on:
+          - dev-backend
+
+    nginx:
+        build: ./nginx
+        restart: always
+        network_mode: "host"
+        depends_on:
+          - dev-backend
+          - dev-frontend
 
 volumes:
     node_modules:
