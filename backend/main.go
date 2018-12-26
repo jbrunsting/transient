@@ -17,12 +17,31 @@ type Response struct {
 
 var db *sql.DB
 
+type User struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Session  string `json:"session"`
+	Expiry   string `json:"expiry"`
+}
+
+func userPost(w http.ResponseWriter, r *http.Request) {
+	var user User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("Got user %v\n", user)
+	w.WriteHeader(http.StatusOK)
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("SELECT * FROM users")
 	if err != nil {
-        fmt.Println("Got error %v", err)
+		fmt.Println("Got error %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
-		return;
+		return
 	}
 
 	fmt.Println("Iterating over rows")
@@ -36,9 +55,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		err = rows.Scan(&id, &username, &password, &session, &expiry)
 		fmt.Printf("At row id: %v, username: %v, password: %v, session: %v, expiry: %v\n", id, username, password, session, expiry)
 		if err != nil {
-            fmt.Printf("Got error %v\n", err)
+			fmt.Printf("Got error %v\n", err)
 			http.Error(w, "Database error", http.StatusInternalServerError)
-			return;
+			return
 		}
 	}
 
@@ -51,6 +70,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", handler)
+	r.HandleFunc("/user", userPost).Methods("POST")
 
 	db, err = sql.Open("postgres", "host=dev-db sslmode=disable user=transient password=password")
 	if err != nil {

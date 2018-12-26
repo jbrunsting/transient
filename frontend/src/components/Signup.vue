@@ -21,7 +21,17 @@ export default {
     },
     methods: {
         signup() {
-            console.log("Signup: " + this.username + ", " + this.email + ", " + this.password);
+            const user = {
+                username: this.username,
+                email: this.email,
+                password: this.password,
+            };
+            this.$http.post('/api/user', user)
+                .then((response) => {
+                    this.data = response.data.message;
+                }).catch((e) => {
+                    console.log(`Error ${JSON.stringify(e)}`);
+                });
         },
     },
 };
