@@ -1,5 +1,7 @@
 FROM node:8.0.0-alpine
 
+ENV NODE_ENV development
+
 RUN mkdir /src
 ADD . /src
 WORKDIR /src
