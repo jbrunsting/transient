@@ -30,7 +30,7 @@ export default {
             };
             this.$http.post('/api/user', user)
                 .then((response) => {
-                    console.log(`Response ${JSON.stringify(response)}`);
+                    this.response = JSON.stringify(response.data);
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

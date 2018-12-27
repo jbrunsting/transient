@@ -74,7 +74,9 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 	user.Session = session
 
 	user.Expiry = time.Now()
-	user.Expiry.Add(expiryMinutes * time.Minute).Format(timeFormat)
+	user.Expiry = user.Expiry.Add(expiryMinutes * time.Minute)
+
+	fmt.Printf("Inserting user %v\n", user)
 
 	_, err = db.Exec(s, user.Id, user.Email, user.Username, user.Password, user.Session, user.Expiry)
 	if err != nil {

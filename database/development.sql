@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(128) NOT NULL UNIQUE,
     password TEXT NOT NULL,
     session VARCHAR(36),
-    expiry VARCHAR(23)
+    expiry TIMESTAMP
 )
