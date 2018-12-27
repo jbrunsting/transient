@@ -1,14 +1,23 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
+	"encoding/json"
+	"encoding/base64"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/lib/pq"
+)
+
+const (
+	sessionIdLength = 32
+	expiryMinutes  = 86400
+	timeFormat     = time.RFC3339
 )
 
 type Response struct {
@@ -18,11 +27,22 @@ type Response struct {
 var db *sql.DB
 
 type User struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Session  string `json:"session"`
-	Expiry   string `json:"expiry"`
+	Id       string    `json:"id"`
+	Email    string    `json:"email"`
+	Username string    `json:"username"`
+	Password string    `json:"password"`
+	Session  string    `json:"session"`
+	Expiry   time.Time `json:"expiry"`
+}
+
+func getSessionId() (string, error) {
+	b := make([]byte, sessionIdLength)
+	_, err := rand.Read(b)
+	id := base64.URLEncoding.EncodeToString(b)[:sessionIdLength]
+	fmt.Println("Getting sesion id")
+	fmt.Printf("session ID is %v\n", id)
+	fmt.Println("Got sesion id")
+	return id, err
 }
 
 func userPost(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +63,20 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	user.Id = id.String()
 
-	_, err = db.Exec(s, id.String(), user.Email, user.Username, user.Password, "", "")
+	session, err := getSessionId()
+	if err != nil {
+		fmt.Printf("Error creating session ID: %v", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	user.Session = session
+
+	user.Expiry = time.Now()
+	user.Expiry.Add(expiryMinutes * time.Minute).Format(timeFormat)
+
+	_, err = db.Exec(s, user.Id, user.Email, user.Username, user.Password, user.Session, user.Expiry)
 	if err != nil {
 		if sqlErr, ok := err.(*pq.Error); ok {
 			switch sqlErr.Code.Class() {
@@ -67,6 +99,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
