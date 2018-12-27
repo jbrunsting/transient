@@ -9,5 +9,6 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-shellwords v1.0.3 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
+	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )

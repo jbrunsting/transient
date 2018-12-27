@@ -3,21 +3,24 @@ package main
 import (
 	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
-	"encoding/json"
-	"encoding/base64"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"github.com/lib/pq"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	sessionIdLength = 32
-	expiryMinutes  = 86400
-	timeFormat     = time.RFC3339
+	expiryMinutes   = 86400
+	timeFormat      = time.RFC3339
+    bcryptCost      = 10
 )
 
 type Response struct {
@@ -57,18 +60,26 @@ func userPost(w http.ResponseWriter, r *http.Request) {
     INSERT INTO users (id, email, username, password, session, expiry)
     VALUES ($1, $2, $3, $4, $5, $6)`
 
+    password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcryptCost)
+    if err != nil {
+        fmt.Printf("Error hashing password: %v\n", err.Error())
+		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		return
+    }
+    user.Password = string(password)
+
 	id, err := uuid.NewV4()
 	if err != nil {
-		fmt.Printf("Error creating UUID: %v", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("Error generating UUID: %v\n", err.Error())
+		http.Error(w, "Error generating UUID", http.StatusInternalServerError)
 		return
 	}
 	user.Id = id.String()
 
 	session, err := getSessionId()
 	if err != nil {
-		fmt.Printf("Error creating session ID: %v", err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Printf("Error generating session ID: %v\n", err.Error())
+		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
 	user.Session = session
@@ -83,18 +94,18 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 		if sqlErr, ok := err.(*pq.Error); ok {
 			switch sqlErr.Code.Class() {
 			case "08":
-				fmt.Printf("Error inserting user: %v", err.Error())
-				http.Error(w, err.Error(), http.StatusServiceUnavailable)
+				fmt.Printf("Error connecting to database: %v\n", err.Error())
+				http.Error(w, "Error connecting to database", http.StatusServiceUnavailable)
 			case "22", "23", "42":
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			default:
-				fmt.Printf("Error inserting user: %v", err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				fmt.Printf("Error inserting user into database: %v\n", err.Error())
+				http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
 			}
 			return
 		} else {
-			fmt.Printf("Error inserting user: %v", err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Printf("Error inserting user into database: %v\n", err.Error())
+			http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
 			return
 		}
 	}
