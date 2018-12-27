@@ -6,6 +6,7 @@
       <input type="password" placeholder="password" v-model="password">
       <button type="submit">Signup</button>
     </form>
+    <h2>{{ response }}</h2>
   </div>
 </template>
 
@@ -17,6 +18,7 @@ export default {
             username: '',
             email: '',
             password: '',
+            response: '',
         };
     },
     methods: {
@@ -28,7 +30,7 @@ export default {
             };
             this.$http.post('/api/user', user)
                 .then((response) => {
-                    this.data = response.data.message;
+                    console.log(`Response ${JSON.stringify(response)}`);
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

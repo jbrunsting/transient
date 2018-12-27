@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    email VARCHAR(254) NOT NULL,
-    username VARCHAR(128) NOT NULL,
+    email VARCHAR(254) NOT NULL UNIQUE,
+    username VARCHAR(128) NOT NULL UNIQUE,
     password TEXT NOT NULL,
     session VARCHAR(36),
     expiry VARCHAR(23)
