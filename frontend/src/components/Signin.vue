@@ -34,6 +34,7 @@ export default {
                     this.$cookie.set('username', this.username, daysToExpiry);
                     this.$cookie.set('session', response.data.session,
                         daysToExpiry);
+                    this.$emit('signin');
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

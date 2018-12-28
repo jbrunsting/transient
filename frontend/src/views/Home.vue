@@ -2,6 +2,7 @@
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
     <h2>{{ data }}</h2>
+    <h2>{{ session }}</h2>
     <HelloWorld msg="Welcome to Your Vue.js App"/>
   </div>
 </template>
@@ -12,6 +13,9 @@ import HelloWorld from '@/components/HelloWorld.vue';
 
 export default {
     name: 'home',
+    props: {
+        session: String,
+    },
     data() {
         return {
             data: '',
