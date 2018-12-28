@@ -28,6 +28,12 @@ export default {
             this.$http.post('/api/user/login', user)
                 .then((response) => {
                     this.response = JSON.stringify(response.data);
+                    const expiry = (new Date(response.expiry)).getTime();
+                    const current = (new Date()).getTime();
+                    const daysToExpiry = Math.floor((expiry - current) / (24 * 60 * 60 * 1000));
+                    this.$cookie.set('username', this.username, daysToExpiry);
+                    this.$cookie.set('session', response.data.session,
+                        daysToExpiry);
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

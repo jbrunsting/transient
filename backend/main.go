@@ -21,6 +21,8 @@ const (
 	expiryMinutes   = 86400
 	timeFormat      = time.RFC3339
 	bcryptCost      = 10
+	usernameCookie  = "username"
+	sessionCookie   = "session"
 )
 
 type Response struct {
@@ -31,15 +33,19 @@ var db *sql.DB
 
 type Identification struct {
 	Username string `json:"username"`
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
+}
+
+type SessionToken struct {
+	Session string    `json:"session"`
+	Expiry  time.Time `json:"expiry"`
 }
 
 type User struct {
 	Id string `json:"id"`
 	Identification
-	Email   string    `json:"email"`
-	Session string    `json:"session"`
-	Expiry  time.Time `json:"expiry"`
+	Email string `json:"email"`
+	SessionToken
 }
 
 func getSessionId() (string, error) {
@@ -52,7 +58,16 @@ func getSessionId() (string, error) {
 	return id, err
 }
 
-func getUser(username string) (User, error) {
+type HttpError struct {
+	Msg  string
+	Code int
+}
+
+func (e HttpError) Error() string {
+	return e.Msg
+}
+
+func getUser(username string) (User, *HttpError) {
 	s := `
     SELECT id, username, password, email, session, expiry FROM users WHERE username=$1`
 	row := db.QueryRow(s, username)
@@ -60,7 +75,57 @@ func getUser(username string) (User, error) {
 	var user User
 	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &user.Session, &user.Expiry)
 
-	return user, err
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, &HttpError{Msg: "User ID not found", Code: http.StatusNotFound}
+		}
+
+		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
+			fmt.Printf("Error connecting to database: %v\n", err.Error())
+			return user, &HttpError{Msg: "Error connecting to database", Code: http.StatusServiceUnavailable}
+		}
+
+		fmt.Printf("Error getting user from database: %v\n", err.Error())
+		return user, &HttpError{Msg: "Error getting user from database", Code: http.StatusInternalServerError}
+	}
+
+	return user, nil
+}
+
+func authHandler(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		username := ""
+		session := ""
+		for _, cookie := range r.Cookies() {
+			if cookie.Name == usernameCookie {
+				username = cookie.Value
+			} else if cookie.Name == sessionCookie {
+				session = cookie.Value
+			}
+		}
+
+		if username == "" {
+			http.Error(w, "No 'username' cookie set", http.StatusBadRequest)
+			return
+		} else if session == "" {
+			http.Error(w, "No 'session' cookie set", http.StatusBadRequest)
+			return
+		}
+
+		user, httpErr := getUser(username)
+		if httpErr != nil {
+			http.Error(w, httpErr.Error(), httpErr.Code)
+			return
+		}
+
+		if user.Session != session {
+			fmt.Printf("User session is %v, received is %v\n", user.Session, session)
+			http.Error(w, "Invalid session ID", http.StatusUnauthorized)
+			return
+		}
+
+		next(w, r)
+	}
 }
 
 func userPost(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +193,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
+// TODO: Handle multiple logins, how to handle multiple sessions?
 func userLoginPost(w http.ResponseWriter, r *http.Request) {
 	var identification Identification
 	err := json.NewDecoder(r.Body).Decode(&identification)
@@ -136,21 +202,9 @@ func userLoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := getUser(identification.Username)
+	user, httpErr := getUser(identification.Username)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "User ID not found", http.StatusNotFound)
-			return
-		}
-
-		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
-			fmt.Printf("Error connecting to database: %v\n", err.Error())
-			http.Error(w, "Error connecting to database", http.StatusServiceUnavailable)
-			return
-		}
-
-		fmt.Printf("Error getting user from database: %v\n", err.Error())
-		http.Error(w, "Error getting user from database", http.StatusInternalServerError)
+		http.Error(w, httpErr.Error(), httpErr.Code)
 		return
 	}
 
@@ -166,14 +220,12 @@ func userLoginPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
-	user.Session = session
 
-	user.Expiry = time.Now()
-	user.Expiry = user.Expiry.Add(expiryMinutes * time.Minute)
+	sessionToken := SessionToken{Session: session, Expiry: time.Now().Add(expiryMinutes * time.Minute)}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(sessionToken)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -210,7 +262,7 @@ func main() {
 	var err error
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", handler)
+	r.HandleFunc("/", authHandler(handler))
 	r.HandleFunc("/user", userPost).Methods("POST")
 	r.HandleFunc("/user/login", userLoginPost).Methods("POST")
 
