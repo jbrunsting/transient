@@ -1,9 +1,9 @@
 <template>
   <div id="app">
     <Nav/>
-    <Signup v-on:signup="updateSession()"/>
-    <Signin v-on:signin="updateSession()"/>
-    <router-view :session="session"/>
+    <Signup v-on:signup="updateSessionId()"/>
+    <Signin v-on:signin="updateSessionId()"/>
+    <router-view :sessionId="sessionId"/>
   </div>
 </template>
 
@@ -14,9 +14,9 @@ import Signin from '@/components/Signin.vue';
 
 export default {
     data() {
-        console.log(`Session is '${this.$cookie.get('session')}'`);
+        console.log(`Session ID is '${this.$cookie.get('sessionId')}'`);
         return {
-            session: this.$cookie.get('session'),
+            sessionId: this.$cookie.get('sessionId'),
         };
     },
     components: {
@@ -25,8 +25,8 @@ export default {
         Signin,
     },
     methods: {
-        updateSession() {
-            this.session = this.$cookie.get('session');
+        updateSessionId() {
+            this.sessionId = this.$cookie.get('sessionId');
         },
     },
 };

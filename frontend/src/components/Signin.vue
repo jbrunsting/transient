@@ -32,7 +32,7 @@ export default {
                     const current = (new Date()).getTime();
                     const daysToExpiry = Math.floor((expiry - current) / (24 * 60 * 60 * 1000));
                     this.$cookie.set('username', this.username, daysToExpiry);
-                    this.$cookie.set('session', response.data.session,
+                    this.$cookie.set('sessionId', response.data.sessionId,
                         daysToExpiry);
                     this.$emit('signin');
                 }).catch((e) => {
