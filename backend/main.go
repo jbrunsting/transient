@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
+	"log"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -78,23 +78,45 @@ func getUser(username string) (User, *HttpError) {
 		}
 
 		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
-			fmt.Printf("Error connecting to database: %v\n", err.Error())
+			log.Printf("Error connecting to database: %v\n", err.Error())
 			return user, &HttpError{Msg: "Error connecting to database", Code: http.StatusServiceUnavailable}
 		}
 
-		fmt.Printf("Error getting user from database: %v\n", err.Error())
+		log.Printf("Error getting user from database: %v\n", err.Error())
 		return user, &HttpError{Msg: "Error getting user from database", Code: http.StatusInternalServerError}
 	}
 	defer rows.Close()
 
-	for rows.Next() {
+	if !rows.Next() {
+		if rows.Err() != nil {
+			log.Printf("Error iterating over user rows: %v\n", rows.Err().Error())
+			return user, &HttpError{Msg: "Error iterating over user rows", Code: http.StatusInternalServerError}
+		}
+
+		return user, &HttpError{Msg: "User not found", Code: http.StatusNotFound}
+	}
+
+	// Only call "rows.Next()" at the end, because we previously called it to
+	// check if the result set was empty
+	for  {
 		var session Session
 		err = rows.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &session.SessionId, &session.Expiry)
 		if err != nil {
-			fmt.Printf("Error parsing user from database: %v\n", err.Error())
+			log.Printf("Error parsing user from database: %v\n", err.Error())
 			return user, &HttpError{Msg: "Error parsing user from database", Code: http.StatusInternalServerError}
 		}
-		user.Sessions = append(user.Sessions, session)
+		if session.SessionId != "" {
+			user.Sessions = append(user.Sessions, session)
+		}
+
+		if !rows.Next() {
+			break
+		}
+	}
+
+	if rows.Err() != nil {
+		log.Printf("Error iterating over user rows: %v\n", rows.Err().Error())
+		return user, &HttpError{Msg: "Error iterating over user rows", Code: http.StatusInternalServerError}
 	}
 
 	return user, nil
@@ -147,7 +169,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 
 	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcryptCost)
 	if err != nil {
-		fmt.Printf("Error hashing password: %v\n", err.Error())
+		log.Printf("Error hashing password: %v\n", err.Error())
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
 		return
 	}
@@ -155,7 +177,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 
 	id, err := uuid.NewV4()
 	if err != nil {
-		fmt.Printf("Error generating UUID: %v\n", err.Error())
+		log.Printf("Error generating UUID: %v\n", err.Error())
 		http.Error(w, "Error generating UUID", http.StatusInternalServerError)
 		return
 	}
@@ -164,7 +186,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 	var session Session
 	session.SessionId, err = generateSessionId()
 	if err != nil {
-		fmt.Printf("Error generating session ID: %v\n", err.Error())
+		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
@@ -175,7 +197,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 	tx, err := db.Begin()
 	if err != nil {
 		tx.Rollback()
-		fmt.Printf("Error starting database transaction: %v\n", err.Error())
+		log.Printf("Error starting database transaction: %v\n", err.Error())
 		http.Error(w, "Error starting database transaction", http.StatusInternalServerError)
 		return
 	}
@@ -188,7 +210,7 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 		if sqlErr, ok := err.(*pq.Error); ok && (sqlErr.Code.Class() == "22" || sqlErr.Code.Class() == "23") {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		} else {
-			fmt.Printf("Error inserting user into database: %v\n", err.Error())
+			log.Printf("Error inserting user into database: %v\n", err.Error())
 			http.Error(w, "Error inserting user into database", http.StatusInternalServerError)
 		}
 		return
@@ -199,14 +221,14 @@ func userPost(w http.ResponseWriter, r *http.Request) {
 	VALUES ($1, $2, $3)`, user.Id, session.SessionId, session.Expiry)
 	if err != nil {
 		tx.Rollback()
-		fmt.Printf("Error inserting session into database: %v\n", err.Error())
+		log.Printf("Error inserting session into database: %v\n", err.Error())
 		http.Error(w, "Error inserting session into database", http.StatusInternalServerError)
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		fmt.Printf("Error commiting database transaction: %v\n", err.Error())
+		log.Printf("Error commiting database transaction: %v\n", err.Error())
 		http.Error(w, "Error commiting database transaction", http.StatusInternalServerError)
 		return
 	}
@@ -225,7 +247,7 @@ func userLoginPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, httpErr := getUser(identification.Username)
-	if err != nil {
+	if httpErr != nil {
 		http.Error(w, httpErr.Error(), httpErr.Code)
 		return
 	}
@@ -238,12 +260,20 @@ func userLoginPost(w http.ResponseWriter, r *http.Request) {
 
 	sessionId, err := generateSessionId()
 	if err != nil {
-		fmt.Printf("Error generating session ID: %v\n", err.Error())
+		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
 
 	session := Session{SessionId: sessionId, Expiry: time.Now().Add(expiryMinutes * time.Minute)}
+	_, err = db.Exec(`
+	INSERT INTO Sessions (id, sessionId, expiry)
+	VALUES ($1, $2, $3)`, user.Id, session.SessionId, session.Expiry)
+	if err != nil {
+		log.Printf("Error inserting session into database: %v\n", err.Error())
+		http.Error(w, "Error inserting session into database", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -256,6 +286,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	var err error
 	r := mux.NewRouter()
 
@@ -269,6 +301,6 @@ func main() {
 	}
 	defer db.Close()
 
-	fmt.Println("Listening on port 3000")
+	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)
 }
