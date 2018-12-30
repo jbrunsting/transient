@@ -16,6 +16,9 @@ export default {
         updateAuth() {
             this.username = this.$cookie.get(this.$usernameCookie);
             this.sessionId = this.$cookie.get(this.$sessionIdCookie);
+            if (!this.username || !this.sessionId) {
+                this.$router.push('/');
+            }
         },
     },
 };
