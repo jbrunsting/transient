@@ -1,30 +1,20 @@
 <template>
   <div id="app">
-    <Nav/>
-    <Signup v-on:signup="updateSessionId()"/>
-    <Signin v-on:signin="updateSessionId()"/>
-    <router-view :sessionId="sessionId"/>
+    <router-view v-on:auth="updateAuth()" :authenticated="!!username && !!sessionId"/>
   </div>
 </template>
 
 <script>
-import Nav from '@/components/Nav.vue';
-import Signup from '@/components/Signup.vue';
-import Signin from '@/components/Signin.vue';
-
 export default {
     data() {
         return {
+            username: this.$cookie.get(this.$usernameCookie),
             sessionId: this.$cookie.get(this.$sessionIdCookie),
         };
     },
-    components: {
-        Nav,
-        Signup,
-        Signin,
-    },
     methods: {
-        updateSessionId() {
+        updateAuth() {
+            this.username = this.$cookie.get(this.$usernameCookie);
             this.sessionId = this.$cookie.get(this.$sessionIdCookie);
         },
     },

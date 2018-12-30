@@ -29,8 +29,11 @@ let router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.meta.auth && !Vue.prototype.$cookie.get(Vue.prototype.$sessionIdCookie)) {
-        next({name: 'home'})
+    if (to.meta.auth && (!Vue.prototype.$cookie.get(Vue.prototype.$sessionIdCookie) ||
+            !Vue.prototype.$cookie.get(Vue.prototype.$usernameCookie))) {
+        next({
+            name: 'home'
+        })
         return
     }
     next()

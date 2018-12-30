@@ -1,20 +1,21 @@
 <template>
   <div class="home">
+    <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <img alt="Vue logo" src="../assets/logo.png">
     <h2>{{ data }}</h2>
-    <h2>{{ sessionId }}</h2>
+    <h2>{{ authenticated }}</h2>
     <HelloWorld msg="Welcome to Your Vue.js App"/>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
 import HelloWorld from '@/components/HelloWorld.vue';
+import Nav from '@/components/Nav.vue';
 
 export default {
     name: 'home',
     props: {
-        sessionId: String,
+        authenticated: Boolean,
     },
     data() {
         return {
@@ -23,10 +24,14 @@ export default {
     },
     components: {
         HelloWorld,
+        Nav,
     },
     methods: {
         mounted() {
             console.log('HI');
+        },
+        updateAuth() {
+            this.$emit('auth');
         },
     },
     created() {
