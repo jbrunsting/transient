@@ -14,9 +14,8 @@ import Signin from '@/components/Signin.vue';
 
 export default {
     data() {
-        console.log(`Session ID is '${this.$cookie.get('sessionId')}'`);
         return {
-            sessionId: this.$cookie.get('sessionId'),
+            sessionId: this.$cookie.get(this.$sessionIdCookie),
         };
     },
     components: {
@@ -26,7 +25,7 @@ export default {
     },
     methods: {
         updateSessionId() {
-            this.sessionId = this.$cookie.get('sessionId');
+            this.sessionId = this.$cookie.get(this.$sessionIdCookie);
         },
     },
 };

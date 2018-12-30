@@ -8,6 +8,8 @@ Vue.config.productionTip = false;
 Vue.prototype.$http = axios;
 
 Vue.use(cookie);
+Vue.prototype.$usernameCookie = 'username';
+Vue.prototype.$sessionIdCookie = 'sessionId';
 
 new Vue({
     router,

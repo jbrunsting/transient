@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
-	"log"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -98,7 +98,7 @@ func getUser(username string) (User, *HttpError) {
 
 	// Only call "rows.Next()" at the end, because we previously called it to
 	// check if the result set was empty
-	for  {
+	for {
 		var session Session
 		err = rows.Scan(&user.Id, &user.Username, &user.Password, &user.Email, &session.SessionId, &session.Expiry)
 		if err != nil {
