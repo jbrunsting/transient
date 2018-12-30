@@ -22,15 +22,16 @@ let router = new Router({
             component: () =>
                 import( /* webpackChunkName: "about" */ './views/About.vue'),
             meta: {
-                auth: true
-            }
+                noAuth: true
+            },
         },
     ],
 });
 
 router.beforeEach((to, from, next) => {
-    if (to.meta.auth && (!Vue.prototype.$cookie.get(Vue.prototype.$sessionIdCookie) ||
-            !Vue.prototype.$cookie.get(Vue.prototype.$usernameCookie))) {
+    const authenticated = (Vue.prototype.$cookie.get(Vue.prototype.$sessionIdCookie) &&
+        Vue.prototype.$cookie.get(Vue.prototype.$usernameCookie));
+    if (to.meta.auth && !authenticated || to.meta.noAuth && authenticated) {
         next({
             name: 'home'
         })

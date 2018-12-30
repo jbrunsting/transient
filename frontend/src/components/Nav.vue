@@ -1,8 +1,12 @@
 <template>
   <div class="nav">
-    <router-link to="/">Home</router-link> |
+    <router-link v-if="!authenticated" to="/">Home</router-link>
+    <router-link v-if="authenticated" to="/">Profile</router-link>
+    <template v-if="!authenticated">
+    |
     <router-link to="/about">About</router-link>
-    <Signin v-on:signin="updateAuth()"/>
+    </template>
+    <Signin v-if="!authenticated" v-on:signin="updateAuth()"/>
     <Signout v-if="authenticated" v-on:signout="updateAuth()"/>
   </div>
 </template>
