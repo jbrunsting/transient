@@ -1,25 +1,16 @@
 package user
 
 import (
-	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/lib/pq"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	sessionIdLength = 32
-	expiryMinutes   = 86400
-	timeFormat      = time.RFC3339
-	bcryptCost      = 10
 	usernameCookie  = "username"
 	sessionIdCookie = "sessionId"
 )
@@ -33,23 +24,11 @@ type identification struct {
 	Password string `json:"password,omitempty"`
 }
 
-type session struct {
-	SessionId string    `json:"sessionId"`
-	Expiry    time.Time `json:"expiry"`
-}
-
 type user struct {
 	Id string `json:"id"`
 	identification
 	Email    string    `json:"email"`
 	Sessions []session `json:"sessions,omitempty"`
-}
-
-func generateSessionId() (string, error) {
-	b := make([]byte, sessionIdLength)
-	_, err := rand.Read(b)
-	id := base64.URLEncoding.EncodeToString(b)[:sessionIdLength]
-	return id, err
 }
 
 type httpError struct {
@@ -119,41 +98,28 @@ func (h *UserHandler) getUser(username string) (user, *httpError) {
 	return u, nil
 }
 
-func (h *UserHandler) AuthHandler(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		username := ""
-		sessionId := ""
-		for _, cookie := range r.Cookies() {
-			if cookie.Name == usernameCookie {
-				username = cookie.Value
-			} else if cookie.Name == sessionIdCookie {
-				sessionId = cookie.Value
-			}
+func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
+	username := ""
+	for _, cookie := range r.Cookies() {
+		if cookie.Name == usernameCookie {
+			username = cookie.Value
 		}
-
-		if username == "" {
-			http.Error(w, "No 'username' cookie set", http.StatusBadRequest)
-			return
-		} else if sessionId == "" {
-			http.Error(w, "No 'sessionId' cookie set", http.StatusBadRequest)
-			return
-		}
-
-		u, httpErr := h.getUser(username)
-		if httpErr != nil {
-			http.Error(w, httpErr.Error(), httpErr.Code)
-			return
-		}
-
-		for _, s := range u.Sessions {
-			if s.SessionId == sessionId {
-				next(w, r)
-				return
-			}
-		}
-
-		http.Error(w, "Invalid session ID", http.StatusUnauthorized)
 	}
+
+    if username == "" {
+        http.Error(w, "No 'username' cookie set", http.StatusBadRequest)
+		return
+	}
+
+	u, httpErr := h.getUser(username)
+	if httpErr != nil {
+		http.Error(w, httpErr.Error(), httpErr.Code)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(u)
 }
 
 func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
@@ -164,7 +130,7 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	password, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcryptCost)
+	password, err := hashPassword(u.Password)
 	if err != nil {
 		log.Printf("Error hashing password: %v\n", err.Error())
 		http.Error(w, "Error hashing password", http.StatusInternalServerError)
@@ -180,16 +146,12 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Id = id.String()
 
-	var s session
-	s.SessionId, err = generateSessionId()
+	s, err := generateSession()
 	if err != nil {
 		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
-
-	s.Expiry = time.Now()
-	s.Expiry = s.Expiry.Add(expiryMinutes * time.Minute)
 
 	tx, err := h.DB.Begin()
 	if err != nil {
@@ -249,20 +211,18 @@ func (h *UserHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(id.Password))
-	if err != nil {
+	if !passwordMatches(u.Password, id.Password) {
 		http.Error(w, "Password does not match", http.StatusUnauthorized)
 		return
 	}
 
-	sessionId, err := generateSessionId()
+	s, err := generateSession()
 	if err != nil {
 		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
 
-	s := session{SessionId: sessionId, Expiry: time.Now().Add(expiryMinutes * time.Minute)}
 	_, err = h.DB.Exec(`
 	INSERT INTO Sessions (id, sessionId, expiry)
 	VALUES ($1, $2, $3)`, u.Id, s.SessionId, s.Expiry)

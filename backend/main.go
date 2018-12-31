@@ -31,9 +31,10 @@ func main() {
 	}
 	defer db.Close()
 
-    u := user.UserHandler{DB: db}
+	u := user.UserHandler{DB: db}
 
 	r.HandleFunc("/", u.AuthHandler(handler))
+	r.HandleFunc("/user", u.AuthHandler(u.Get)).Methods("GET")
 	r.HandleFunc("/user", u.Post).Methods("POST")
 	r.HandleFunc("/user/login", u.LoginPost).Methods("POST")
 
