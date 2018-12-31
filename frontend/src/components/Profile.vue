@@ -1,25 +1,20 @@
 <template>
   <div class="about">
     <h1>Welcome {{ username }}</h1>
-    <p>{{ testCall }}</p>
+    <p>{{ email }}</p>
   </div>
 </template>
 <script>
-import Nav from '@/components/Nav.vue';
-
 export default {
     name: 'about',
     data() {
         return {
-            username: this.$cookie.get('username'),
-            testCall: '',
+            username: '',
+            email: '',
         };
     },
     props: {
         authenticated: Boolean,
-    },
-    components: {
-        Nav,
     },
     methods: {
         updateAuth() {
@@ -27,13 +22,13 @@ export default {
         },
     },
     created() {
-        this.$http.get('/api/')
+        this.$http.get('/api/user')
             .then((response) => {
-                this.testCall = response.data.message;
+                this.username = response.data.username;
+                this.email = response.data.email;
             }).catch((e) => {
                 console.log(`Error ${JSON.stringify(e)}`);
             });
-        this.data = 'test';
     },
 };
 </script>

@@ -10,11 +10,6 @@ import (
 	"github.com/lib/pq"
 )
 
-const (
-	usernameCookie  = "username"
-	sessionIdCookie = "sessionId"
-)
-
 type UserHandler struct {
 	DB *sql.DB
 }
@@ -40,14 +35,55 @@ func (e httpError) Error() string {
 	return e.Msg
 }
 
+// TODO: Create seperate package for accessing database
 func (h *UserHandler) getUser(username string) (user, *httpError) {
+	var u user
+
+	s := `
+    SELECT id, username, password, email FROM Users
+    WHERE username=$1`
+	rows, err := h.DB.Query(s, username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return u, &httpError{Msg: "User ID not found", Code: http.StatusNotFound}
+		}
+
+		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
+			log.Printf("Error connecting to database: %v\n", err.Error())
+			return u, &httpError{Msg: "Error connecting to database", Code: http.StatusServiceUnavailable}
+		}
+
+		log.Printf("Error getting user from database: %v\n", err.Error())
+		return u, &httpError{Msg: "Error getting user from database", Code: http.StatusInternalServerError}
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		if rows.Err() != nil {
+			log.Printf("Error iterating over user rows: %v\n", rows.Err().Error())
+			return u, &httpError{Msg: "Error iterating over user rows", Code: http.StatusInternalServerError}
+		}
+
+		return u, &httpError{Msg: "User not found", Code: http.StatusNotFound}
+	}
+
+	err = rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email)
+	if err != nil {
+		log.Printf("Error parsing user from database: %v\n", err.Error())
+		return u, &httpError{Msg: "Error parsing user from database", Code: http.StatusInternalServerError}
+	}
+
+	return u, nil
+}
+
+func (h *UserHandler) getSessionUser(sessionId string) (user, *httpError) {
 	var u user
 
 	s := `
     SELECT Users.id, username, password, email, Sessions.sessionId, Sessions.expiry FROM Users
 	LEFT JOIN Sessions ON Users.id = Sessions.id
-	WHERE username=$1`
-	rows, err := h.DB.Query(s, username)
+	WHERE Users.id=(SELECT Sessions.id FROM Sessions WHERE sessionId=$1)`
+	rows, err := h.DB.Query(s, sessionId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return u, &httpError{Msg: "User ID not found", Code: http.StatusNotFound}
@@ -99,19 +135,13 @@ func (h *UserHandler) getUser(username string) (user, *httpError) {
 }
 
 func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
-	username := ""
-	for _, cookie := range r.Cookies() {
-		if cookie.Name == usernameCookie {
-			username = cookie.Value
-		}
-	}
-
-    if username == "" {
-        http.Error(w, "No 'username' cookie set", http.StatusBadRequest)
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusForbidden)
 		return
 	}
 
-	u, httpErr := h.getUser(username)
+	u, httpErr := h.getSessionUser(sessionId)
 	if httpErr != nil {
 		http.Error(w, httpErr.Error(), httpErr.Code)
 		return
@@ -119,7 +149,11 @@ func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(u)
+	json.NewEncoder(w).Encode(user{
+		Id:             u.Id,
+		identification: identification{Username: u.Username},
+		Email:          u.Email,
+	})
 }
 
 func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
@@ -146,12 +180,13 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 	u.Id = id.String()
 
-	s, err := generateSession()
+	s, err := generateSession(u.Id)
 	if err != nil {
 		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
+	storeSessionCookie(w, s)
 
 	tx, err := h.DB.Begin()
 	if err != nil {
@@ -194,7 +229,6 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s)
 }
 
 func (h *UserHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
@@ -216,12 +250,13 @@ func (h *UserHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s, err := generateSession()
+	s, err := generateSession(u.Id)
 	if err != nil {
 		log.Printf("Error generating session ID: %v\n", err.Error())
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
+	storeSessionCookie(w, s)
 
 	_, err = h.DB.Exec(`
 	INSERT INTO Sessions (id, sessionId, expiry)
@@ -234,5 +269,40 @@ func (h *UserHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(s)
+}
+
+func (h *UserHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusForbidden)
+		return
+	}
+
+	_, err = h.DB.Exec(`DELETE FROM Sessions WHERE sessionId = $1`, sessionId)
+	if err != nil {
+		log.Printf("Error deleting session from database: %v\n", err.Error())
+		http.Error(w, "Error deleting session from database", http.StatusInternalServerError)
+		return
+	}
+	deleteSessionCookie(w)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *UserHandler) AuthenticatedGet(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusBadRequest)
+		return
+	}
+
+	_, httpErr := h.getSessionUser(sessionId)
+	if httpErr != nil {
+		http.Error(w, "Session ID invalid", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }

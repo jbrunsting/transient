@@ -6,14 +6,14 @@
     |
     <router-link to="/about">About</router-link>
     </template>
-    <Signin v-if="!authenticated" v-on:signin="updateAuth()"/>
-    <Signout v-if="authenticated" v-on:signout="updateAuth()"/>
+    <Login v-if="!authenticated" v-on:login="updateAuth()"/>
+    <Logout v-if="authenticated" v-on:logout="updateAuth()"/>
   </div>
 </template>
 
 <script>
-import Signin from '@/components/Signin.vue';
-import Signout from '@/components/Signout.vue';
+import Login from '@/components/Login.vue';
+import Logout from '@/components/Logout.vue';
 
 export default {
     name: 'Nav',
@@ -21,8 +21,8 @@ export default {
         authenticated: Boolean,
     },
     components: {
-        Signin,
-        Signout,
+        Login,
+        Logout,
     },
     methods: {
         updateAuth() {

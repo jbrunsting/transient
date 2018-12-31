@@ -1,6 +1,9 @@
 <template>
   <div id="app">
-    <router-view v-on:auth="updateAuth()" :authenticated="!!username && !!sessionId"/>
+    <router-view
+        v-if="authenticated != null"
+        v-on:auth="updateAuth()"
+        :authenticated="authenticated"/>
   </div>
 </template>
 
@@ -8,16 +11,27 @@
 export default {
     data() {
         return {
-            username: this.$cookie.get(this.$usernameCookie),
-            sessionId: this.$cookie.get(this.$sessionIdCookie),
+            authenticated: null,
         };
     },
     methods: {
         updateAuth() {
-            this.username = this.$cookie.get(this.$usernameCookie);
-            this.sessionId = this.$cookie.get(this.$sessionIdCookie);
-            this.$router.push('/');
+            this.$http.get('/api/user/authenticated')
+                .then(() => {
+                    if (!this.authenticated) {
+                        this.authenticated = true;
+                        this.$router.push('/');
+                    }
+                }).catch(() => {
+                    if (this.authenticated) {
+                        this.authenticated = false;
+                        this.$router.push('/');
+                    }
+                });
         },
+    },
+    created() {
+        this.updateAuth();
     },
 };
 </script>

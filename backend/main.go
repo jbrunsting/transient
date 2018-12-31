@@ -33,10 +33,11 @@ func main() {
 
 	u := user.UserHandler{DB: db}
 
-	r.HandleFunc("/", u.AuthHandler(handler))
-	r.HandleFunc("/user", u.AuthHandler(u.Get)).Methods("GET")
+	r.HandleFunc("/user", u.Get).Methods("GET")
 	r.HandleFunc("/user", u.Post).Methods("POST")
 	r.HandleFunc("/user/login", u.LoginPost).Methods("POST")
+	r.HandleFunc("/user/logout", u.LogoutPost).Methods("POST")
+	r.HandleFunc("/user/authenticated", u.AuthenticatedGet).Methods("GET")
 
 	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)

@@ -1,10 +1,9 @@
 <template>
-  <div class="signup">
-    <form @submit.prevent="signup">
+  <div class="login">
+    <form @submit.prevent="login">
       <input placeholder="username" v-model="username">
-      <input type="email" placeholder="email" v-model="email">
       <input type="password" placeholder="password" v-model="password">
-      <button type="submit">Signup</button>
+      <button type="submit">Login</button>
     </form>
     <h2>{{ response }}</h2>
   </div>
@@ -12,25 +11,23 @@
 
 <script>
 export default {
-    name: 'Signup',
+    name: 'Login',
     data() {
         return {
             username: '',
-            email: '',
             password: '',
             response: '',
         };
     },
     methods: {
-        signup() {
-            const user = {
+        login() {
+            const identification = {
                 username: this.username,
-                email: this.email,
                 password: this.password,
             };
-            this.$http.post('/api/user', user)
+            this.$http.post('/api/user/login', identification)
                 .then(() => {
-                    this.$emit('signup');
+                    this.$emit('login');
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

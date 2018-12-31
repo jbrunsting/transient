@@ -3,6 +3,7 @@ package user
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 )
 
 const (
+	sessionIdCookie = "sessionId"
 	sessionIdLength = 32
 	bcryptCost      = 10
 	timeFormat      = time.RFC3339
@@ -17,6 +19,7 @@ const (
 )
 
 type session struct {
+	Id        string    `json:"id"`
 	SessionId string    `json:"sessionId"`
 	Expiry    time.Time `json:"expiry"`
 }
@@ -37,9 +40,11 @@ func generateSessionId() (string, error) {
 	return id, err
 }
 
-func generateSession() (session, error) {
+func generateSession(id string) (session, error) {
 	var s session
 	var err error
+
+	s.Id = id
 
 	s.SessionId, err = generateSessionId()
 	if err != nil {
@@ -52,47 +57,30 @@ func generateSession() (session, error) {
 	return s, nil
 }
 
-func (h *UserHandler) AuthHandler(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		username := ""
-		sessionId := ""
-		for _, cookie := range r.Cookies() {
-			if cookie.Name == usernameCookie {
-				if username == "" {
-					username = cookie.Value
-				} else if username != cookie.Value {
-					// Only allow one username cookie so we don't authenticate
-					// with one username, and then use a different username
-					// from the other cookie in a future handler
-					http.Error(w, "Two 'username' cookies found", http.StatusBadRequest)
-					return
-				}
-			} else if cookie.Name == sessionIdCookie {
-				sessionId = cookie.Value
-			}
+func getSessionId(r *http.Request) (string, error) {
+	for _, cookie := range r.Cookies() {
+		if cookie.Name == sessionIdCookie {
+			return cookie.Value, nil
 		}
-
-		if username == "" {
-			http.Error(w, "No 'username' cookie set", http.StatusBadRequest)
-			return
-		} else if sessionId == "" {
-			http.Error(w, "No 'sessionId' cookie set", http.StatusBadRequest)
-			return
-		}
-
-		u, httpErr := h.getUser(username)
-		if httpErr != nil {
-			http.Error(w, httpErr.Error(), httpErr.Code)
-			return
-		}
-
-		for _, s := range u.Sessions {
-			if s.SessionId == sessionId {
-				next(w, r)
-				return
-			}
-		}
-
-		http.Error(w, "Invalid session ID", http.StatusUnauthorized)
 	}
+
+	return "", errors.New("No session ID cookie")
+}
+
+func storeSessionCookie(w http.ResponseWriter, s session) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionIdCookie,
+		Value:    s.SessionId,
+		Expires:  s.Expiry,
+		HttpOnly: true,
+	})
+}
+
+func deleteSessionCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionIdCookie,
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		HttpOnly: true,
+	})
 }
