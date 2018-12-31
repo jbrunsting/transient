@@ -23,7 +23,7 @@ export default {
                         this.$router.push('/');
                     }
                 }).catch(() => {
-                    if (this.authenticated) {
+                    if (this.authenticated || this.authenticated == null) {
                         this.authenticated = false;
                         this.$router.push('/');
                     }

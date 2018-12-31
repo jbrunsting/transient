@@ -1,13 +1,15 @@
 <template>
   <div class="nav">
-    <router-link v-if="!authenticated" to="/">Home</router-link>
-    <router-link v-if="authenticated" to="/">Profile</router-link>
-    <template v-if="!authenticated">
-    |
-    <router-link to="/about">About</router-link>
+    <template v-if="authenticated">
+      <router-link to="/">Profile</router-link>|
+      <router-link to="/settings">Settings</router-link>
+      <Logout v-on:logout="updateAuth()"/>
     </template>
-    <Login v-if="!authenticated" v-on:login="updateAuth()"/>
-    <Logout v-if="authenticated" v-on:logout="updateAuth()"/>
+    <template v-if="!authenticated">
+      <router-link to="/">Home</router-link>|
+      <router-link to="/about">About</router-link>
+      <Login v-on:login="updateAuth()"/>
+    </template>
   </div>
 </template>
 

@@ -37,6 +37,8 @@ func main() {
 	r.HandleFunc("/user", u.Post).Methods("POST")
 	r.HandleFunc("/user/login", u.LoginPost).Methods("POST")
 	r.HandleFunc("/user/logout", u.LogoutPost).Methods("POST")
+	r.HandleFunc("/user/invalidate", u.InvalidatePost).Methods("POST")
+	r.HandleFunc("/user/delete", u.DeletePost).Methods("POST")
 	r.HandleFunc("/user/authenticated", u.AuthenticatedGet).Methods("GET")
 
 	log.Println("Listening on port 3000")

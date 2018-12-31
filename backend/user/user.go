@@ -290,6 +290,57 @@ func (h *UserHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *UserHandler) InvalidatePost(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusForbidden)
+		return
+	}
+
+    s := `
+    DELETE FROM Sessions
+    WHERE sessionId <> $1 AND id = (SELECT id FROM Sessions WHERE sessionId = $1)`
+	_, err = h.DB.Exec(s, sessionId)
+	if err != nil {
+		log.Printf("Error deleting sessions from database: %v\n", err.Error())
+		http.Error(w, "Error deleting sessions from database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *UserHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	var id identification
+	err := json.NewDecoder(r.Body).Decode(&id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	u, httpErr := h.getUser(id.Username)
+	if httpErr != nil {
+		http.Error(w, httpErr.Error(), httpErr.Code)
+		return
+	}
+
+	if !passwordMatches(u.Password, id.Password) {
+		http.Error(w, "Password does not match", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = h.DB.Exec(`DELETE FROM Users WHERE id=$1`, u.Id)
+	if err != nil {
+		log.Printf("Error deleting user from database: %v\n", err.Error())
+		http.Error(w, "Error deleting user from database", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *UserHandler) AuthenticatedGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
