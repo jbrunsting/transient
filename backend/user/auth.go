@@ -59,6 +59,9 @@ func generateSession(id string) (session, error) {
 
 func getSessionId(r *http.Request) (string, error) {
 	for _, cookie := range r.Cookies() {
+		if (cookie.Path != "") {
+			continue
+		}
 		if cookie.Name == sessionIdCookie {
 			return cookie.Value, nil
 		}
@@ -70,6 +73,7 @@ func getSessionId(r *http.Request) (string, error) {
 func storeSessionCookie(w http.ResponseWriter, s session) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionIdCookie,
+		Path:     "",
 		Value:    s.SessionId,
 		Expires:  s.Expiry,
 		HttpOnly: true,
@@ -79,6 +83,7 @@ func storeSessionCookie(w http.ResponseWriter, s session) {
 func deleteSessionCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionIdCookie,
+		Path:     "",
 		Value:    "",
 		Expires:  time.Unix(0, 0),
 		HttpOnly: true,

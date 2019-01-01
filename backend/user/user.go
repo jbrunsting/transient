@@ -35,7 +35,6 @@ func (e httpError) Error() string {
 	return e.Msg
 }
 
-// TODO: Create seperate package for accessing database
 func (h *UserHandler) getUser(username string) (user, *httpError) {
 	var u user
 
@@ -86,7 +85,7 @@ func (h *UserHandler) getSessionUser(sessionId string) (user, *httpError) {
 	rows, err := h.DB.Query(s, sessionId)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return u, &httpError{Msg: "User ID not found", Code: http.StatusNotFound}
+			return u, &httpError{Msg: "Session ID not found", Code: http.StatusNotFound}
 		}
 
 		if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
@@ -105,7 +104,7 @@ func (h *UserHandler) getSessionUser(sessionId string) (user, *httpError) {
 			return u, &httpError{Msg: "Error iterating over user rows", Code: http.StatusInternalServerError}
 		}
 
-		return u, &httpError{Msg: "User not found", Code: http.StatusNotFound}
+		return u, &httpError{Msg: "Session ID not found", Code: http.StatusNotFound}
 	}
 
 	// Only call "rows.Next()" at the end, because we previously called it to
@@ -186,7 +185,6 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error generating session ID", http.StatusInternalServerError)
 		return
 	}
-	storeSessionCookie(w, s)
 
 	tx, err := h.DB.Begin()
 	if err != nil {
@@ -226,6 +224,7 @@ func (h *UserHandler) Post(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error commiting database transaction", http.StatusInternalServerError)
 		return
 	}
+	storeSessionCookie(w, s)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -297,7 +296,7 @@ func (h *UserHandler) InvalidatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    s := `
+	s := `
     DELETE FROM Sessions
     WHERE sessionId <> $1 AND id = (SELECT id FROM Sessions WHERE sessionId = $1)`
 	_, err = h.DB.Exec(s, sessionId)
@@ -350,7 +349,7 @@ func (h *UserHandler) AuthenticatedGet(w http.ResponseWriter, r *http.Request) {
 
 	_, httpErr := h.getSessionUser(sessionId)
 	if httpErr != nil {
-		http.Error(w, "Session ID invalid", http.StatusUnauthorized)
+		http.Error(w, httpErr.Error(), httpErr.Code)
 		return
 	}
 

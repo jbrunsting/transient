@@ -29,6 +29,9 @@ export default {
         };
     },
     methods: {
+        updateAuth() {
+            this.$emit('auth');
+        },
         invalidateSessions() {
             this.$http.post('/api/user/invalidate')
                 .then(() => {
