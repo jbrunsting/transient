@@ -8,6 +8,9 @@
     <Error class="login-error">
       Username or password incorrect. <a href="todo">Forgot password?</a>
     </Error>
+    <Error class="unknown-error">
+      Could not login, please try again later
+    </Error>
   </div>
 </template>
 
@@ -27,19 +30,29 @@ export default {
     },
     methods: {
         login() {
+            this.$el.querySelectorAll('.login-error').forEach((c) => {
+                c.style.visibility = 'hidden';
+            });
+
             const identification = {
                 username: this.username,
                 password: this.password,
             };
+
             this.$http.post('/api/user/login', identification)
                 .then(() => {
                     this.$emit('login');
                 }).catch((e) => {
-                    console.log(`Error ${JSON.stringify(e)}`);
-                    console.log(this.$el.querySelector(".login-error"))
-                    this.$el.querySelectorAll(".login-error").forEach(e => {
-                        e.style.visibility = "visible";
-                    });
+                    if (e.response.status === 401) {
+                        this.$el.querySelectorAll('.login-error').forEach((c) => {
+                            c.style.visibility = 'visible';
+                        });
+                    } else {
+                        this.$el.querySelectorAll('.unknown-error').forEach((c) => {
+                            c.style.visibility = 'visible';
+                        });
+                        console.log(`${JSON.stringify(e.response.status)}`);
+                    }
                 });
         },
     },
@@ -71,5 +84,10 @@ form {
 .login-error {
   position: absolute;
   visibility: hidden;
+}
+
+.unknown-error {
+  position: absolute;
+  visibility: hidden
 }
 </style>

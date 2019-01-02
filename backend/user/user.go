@@ -241,12 +241,19 @@ func (h *UserHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	u, httpErr := h.getUser(id.Username)
 	if httpErr != nil {
+		if httpErr.Code == http.StatusNotFound {
+            // Return the same error whether the username or password doesn't
+            // match
+			http.Error(w, "Username or password does not match", http.StatusUnauthorized)
+			return
+		}
+
 		http.Error(w, httpErr.Error(), httpErr.Code)
 		return
 	}
 
 	if !passwordMatches(u.Password, id.Password) {
-		http.Error(w, "Password does not match", http.StatusUnauthorized)
+		http.Error(w, "Username or password does not match", http.StatusUnauthorized)
 		return
 	}
 
