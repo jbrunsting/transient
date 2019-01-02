@@ -1,7 +1,6 @@
 <template>
   <div class="home">
     <Signup v-if="!authenticated" v-on:signup="updateAuth()"/>
-    <img alt="Vue logo" src="../assets/logo.png">
   </div>
 </template>
 

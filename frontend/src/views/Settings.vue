@@ -1,14 +1,16 @@
 <template>
   <div class="settings">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
-    <form @submit.prevent="invalidateSessions">
-      <button type="submit">Logout of all other sessions</button>
-    </form>
-    <form @submit.prevent="deleteAccount">
-      <input placeholder="username" v-model="username">
-      <input type="password" placeholder="password" v-model="password">
-      <button type="deleteAccount">Delete account</button>
-    </form>
+    <div class="content">
+      <form @submit.prevent="invalidateSessions">
+        <button type="submit">Logout of all other sessions</button>
+      </form>
+      <form @submit.prevent="deleteAccount">
+        <input placeholder="username" v-model="username">
+        <input type="password" placeholder="password" v-model="password">
+        <button type="deleteAccount">Delete account</button>
+      </form>
+    </div>
   </div>
 </template>
 <script>

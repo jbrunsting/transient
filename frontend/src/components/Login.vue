@@ -5,7 +5,6 @@
       <input type="password" placeholder="password" v-model="password">
       <button type="submit">Login</button>
     </form>
-    <h2>{{ response }}</h2>
   </div>
 </template>
 
@@ -16,7 +15,6 @@ export default {
         return {
             username: '',
             password: '',
-            response: '',
         };
     },
     methods: {
@@ -37,7 +35,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import "../styles/settings.scss";
+
 input {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 120px;
+}
+
+button {
+  margin-left: $margin0;
+}
+
+form {
+  display: flex;
+  align-items: center;
 }
 </style>

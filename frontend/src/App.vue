@@ -41,6 +41,7 @@ export default {
 
 body {
   margin: 0;
+  background-color: $base2;
 }
 
 #app {
@@ -53,6 +54,11 @@ body {
 input {
   font-family: $font-stack;
   color: $text0;
+  padding: $margin0 $margin1;
+  margin: $margin0;
+  border-radius: $margin0;
+  border-color: $accent0;
+  width: 150px;
 }
 
 button {
@@ -80,5 +86,13 @@ a {
   &:visited {
     color: $accent0;
   }
+}
+
+.content {
+  max-width: $page-width;
+  margin: $margin2 auto;
+  padding: $margin2;
+  background-color: $base0;
+  border-radius: $margin0;
 }
 </style>

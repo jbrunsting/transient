@@ -1,8 +1,10 @@
 <template>
   <div class="home">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
-    <Landing v-if="!authenticated" v-on:auth="updateAuth()"/>
-    <Profile v-if="authenticated"/>
+    <div class="content">
+      <Landing v-if="!authenticated" v-on:auth="updateAuth()"/>
+      <Profile v-if="authenticated"/>
+    </div>
   </div>
 </template>
 

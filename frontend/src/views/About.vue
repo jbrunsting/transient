@@ -1,9 +1,12 @@
 <template>
   <div class="about">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
-    <h1>This is an about page</h1>
+    <div class="content">
+      <h1>This is an about page</h1>
+    </div>
   </div>
 </template>
+
 <script>
 import Nav from '@/components/Nav.vue';
 

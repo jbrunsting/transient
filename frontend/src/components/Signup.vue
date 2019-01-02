@@ -40,7 +40,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import "../styles/settings.scss";
+
 input {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 </style>
