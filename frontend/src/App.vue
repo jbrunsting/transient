@@ -80,7 +80,6 @@ button {
 
 a {
   color: $accent0;
-  padding: $margin0 $margin1;
   text-decoration: none;
 
   &:visited {
