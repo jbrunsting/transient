@@ -35,7 +35,7 @@ export default {
         invalidateSessions() {
             this.$http.post('/api/user/invalidate')
                 .then(() => {
-                    alert("Successfully logged out of all other sessions")
+                    alert('Successfully logged out of all other sessions'); // eslint-disable-line no-alert
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

@@ -37,11 +37,48 @@ export default {
 </script>
 
 <style lang="scss">
+@import "styles/settings.scss";
+
+body {
+  margin: 0;
+}
+
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: $font-stack;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+  color: $text0;
+}
+
+input {
+  font-family: $font-stack;
+  color: $text0;
+}
+
+button {
+  font-weight: bold;
+  font-size: $fontsize1;
+  background-color: $accent0;
+  color: $text1;
+  padding: $margin0 $margin1;
+  border-radius: $margin0;
+  border: none;
+  transition: background-color $duration0;
+  display: inline-block;
+
+  &:hover {
+    cursor: pointer;
+    background-color: lighten($accent0, 5%);
+  }
+}
+
+a {
+  color: $accent0;
+  padding: $margin0 $margin1;
+  text-decoration: none;
+
+  &:visited {
+    color: $accent0;
+  }
 }
 </style>

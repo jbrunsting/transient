@@ -1,12 +1,12 @@
 <template>
   <div class="nav">
     <template v-if="authenticated">
-      <router-link to="/">Profile</router-link>|
+      <router-link to="/">Profile</router-link>
       <router-link to="/settings">Settings</router-link>
       <Logout v-on:logout="updateAuth()"/>
     </template>
     <template v-if="!authenticated">
-      <router-link to="/">Home</router-link>|
+      <router-link to="/">Home</router-link>
       <router-link to="/about">About</router-link>
       <Login v-on:login="updateAuth()"/>
     </template>
@@ -35,14 +35,27 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.nav {
-  a {
-    padding: 30px;
-    font-weight: bold;
+@import "../styles/settings.scss";
 
-    &.router-link-exact-active {
-      color: red;
-    }
+.nav {
+  display: flex;
+  align-items: center;
+  background: $accent1;
+  padding: $margin1 $margin2;
+
+  a {
+    font-size: $fontsize2;
+    padding: $margin1;
+    font-weight: bold;
+    color: $text1;
+  }
+
+  * {
+    display: inline-block;
+  }
+
+  div {
+    margin-left: auto;
   }
 }
 </style>
