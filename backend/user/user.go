@@ -104,6 +104,7 @@ func (h *UserHandler) getSessionUser(sessionId string) (user, *httpError) {
 			return u, &httpError{Msg: "Error iterating over user rows", Code: http.StatusInternalServerError}
 		}
 
+		log.Printf("Using session id %v\n", sessionId)
 		return u, &httpError{Msg: "Session ID not found", Code: http.StatusNotFound}
 	}
 
