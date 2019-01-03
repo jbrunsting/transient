@@ -5,16 +5,13 @@
       <form @submit.prevent="invalidateSessions">
         <button type="submit">Logout of all other sessions</button>
       </form>
-      <form @submit.prevent="deleteAccount">
-        <input placeholder="username" v-model="username">
-        <input type="password" placeholder="password" v-model="password">
-        <button type="deleteAccount">Delete account</button>
-      </form>
+      <Login submitText="Delete account" apiPath="/api/user/delete" v-on:login="updateAuth()"/>
     </div>
   </div>
 </template>
 <script>
 import Nav from '@/components/Nav.vue';
+import Login from '@/components/Login.vue';
 
 export default {
     name: 'about',
@@ -23,6 +20,7 @@ export default {
     },
     components: {
         Nav,
+        Login,
     },
     data() {
         return {
@@ -38,18 +36,6 @@ export default {
             this.$http.post('/api/user/invalidate')
                 .then(() => {
                     alert('Successfully logged out of all other sessions'); // eslint-disable-line no-alert
-                }).catch((e) => {
-                    console.log(`Error ${JSON.stringify(e)}`);
-                });
-        },
-        deleteAccount() {
-            const identification = {
-                username: this.username,
-                password: this.password,
-            };
-            this.$http.post('/api/user/delete', identification)
-                .then(() => {
-                    this.$emit('auth');
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

@@ -3,12 +3,15 @@
     <form @submit.prevent="login">
       <input placeholder="username" v-model="username">
       <input type="password" placeholder="password" v-model="password">
-      <button type="submit">Login</button>
+      <button type="submit">{{ submitText }}</button>
     </form>
-    <Error class="login-error">
+    <Error class="error empty">
+      Please enter your username and password
+    </Error>
+    <Error class="error login">
       Username or password incorrect. <a href="todo">Forgot password?</a>
     </Error>
-    <Error class="unknown-error">
+    <Error class="error unknown">
       Could not login, please try again later
     </Error>
   </div>
@@ -25,35 +28,51 @@ export default {
             password: '',
         };
     },
+    props: {
+        submitText: {
+            type: String,
+            default: 'Login',
+        },
+        apiPath: {
+            type: String,
+            default: '/api/user/login',
+        },
+    },
     components: {
         Error,
     },
     methods: {
         login() {
-            this.$el.querySelectorAll('.login-error').forEach((c) => {
+            /* eslint-disable no-param-reassign */
+            this.$el.querySelectorAll('.error').forEach((c) => {
                 c.style.visibility = 'hidden';
             });
+
+            if (this.username === '' || this.password === '') {
+                this.$el.querySelector('.empty.error').style.visibility = 'visible';
+                return;
+            }
 
             const identification = {
                 username: this.username,
                 password: this.password,
             };
 
-            this.$http.post('/api/user/login', identification)
+            this.$http.post(this.apiPath, identification)
                 .then(() => {
                     this.$emit('login');
                 }).catch((e) => {
                     if (e.response.status === 401) {
-                        this.$el.querySelectorAll('.login-error').forEach((c) => {
-                            c.style.visibility = 'visible';
-                        });
+                        this.$el.querySelector('.login.error').style.visibility = 'visible';
                     } else {
-                        this.$el.querySelectorAll('.unknown-error').forEach((c) => {
-                            c.style.visibility = 'visible';
-                        });
-                        console.log(`${JSON.stringify(e.response.status)}`);
+                        console.log(e.response);
+                        this.$el.querySelector('.unknown.error').style.visibility = 'visible';
+                        if (e) {
+                            console.log(`${JSON.stringify(e)}`);
+                        }
                     }
                 });
+            /* eslint-enable no-param-reassign */
         },
     },
 };
@@ -81,13 +100,8 @@ form {
   align-items: center;
 }
 
-.login-error {
+.error {
   position: absolute;
   visibility: hidden;
-}
-
-.unknown-error {
-  position: absolute;
-  visibility: hidden
 }
 </style>
