@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/jbrunsting/transient/backend/models"
 )
 
 const (
@@ -17,12 +19,6 @@ const (
 	timeFormat      = time.RFC3339
 	expiryMinutes   = 86400
 )
-
-type session struct {
-	Id        string    `json:"id"`
-	SessionId string    `json:"sessionId"`
-	Expiry    time.Time `json:"expiry"`
-}
 
 func hashPassword(password string) (string, error) {
 	p, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
@@ -40,8 +36,8 @@ func generateSessionId() (string, error) {
 	return id, err
 }
 
-func generateSession(id string) (session, error) {
-	var s session
+func generateSession(id string) (models.Session, error) {
+	var s models.Session
 	var err error
 
 	s.Id = id
@@ -67,7 +63,7 @@ func getSessionId(r *http.Request) (string, error) {
 	return "", errors.New("No session ID cookie")
 }
 
-func storeSessionCookie(w http.ResponseWriter, s session) {
+func storeSessionCookie(w http.ResponseWriter, s models.Session) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionIdCookie,
 		Path:     "/",

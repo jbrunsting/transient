@@ -2,13 +2,13 @@ package main
 
 import (
 	"log"
-	"database/sql"
 	"net/http"
     "encoding/json"
 
 	"github.com/gorilla/mux"
 
 	"github.com/jbrunsting/transient/backend/user"
+	"github.com/jbrunsting/transient/backend/database"
 )
 
 type response struct {
@@ -25,13 +25,13 @@ func main() {
 	var err error
 	r := mux.NewRouter()
 
-	db, err := sql.Open("postgres", "host=dev-db sslmode=disable user=transient password=password")
+	databaseHandler, err := database.NewDatabaseHandler()
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
+	defer databaseHandler.Close()
 
-	u := user.UserHandler{DB: db}
+	u := user.NewUserHandler(databaseHandler)
 
 	r.HandleFunc("/user", u.Get).Methods("GET")
 	r.HandleFunc("/user", u.Post).Methods("POST")
