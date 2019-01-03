@@ -116,6 +116,10 @@ func (h *userHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.GetUserFromUsername(id.Username)
 	if err != nil {
+		if _, ok := err.(*database.NotFoundError); ok {
+			http.Error(w, "Username or password does not match", http.StatusUnauthorized)
+			return
+		}
 		handleDbErr(err, w)
 		return
 	}
@@ -191,6 +195,10 @@ func (h *userHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.db.GetUserFromSession(sessionId)
 	if err != nil {
+		if _, ok := err.(*database.NotFoundError); ok {
+			http.Error(w, "Username or password does not match", http.StatusUnauthorized)
+			return
+		}
 		handleDbErr(err, w)
 		return
 	}

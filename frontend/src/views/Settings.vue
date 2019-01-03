@@ -37,6 +37,7 @@ export default {
                 .then(() => {
                     alert('Successfully logged out of all other sessions'); // eslint-disable-line no-alert
                 }).catch((e) => {
+                    updateAuth();
                     console.log(`Error ${JSON.stringify(e)}`);
                 });
         },
