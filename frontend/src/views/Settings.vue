@@ -2,7 +2,7 @@
   <div class="settings">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <div class="content">
-      <form @submit.prevent="invalidateSessions">
+      <form id="invalidate" @submit.prevent="invalidateSessions">
         <button type="submit">Logout of all other sessions</button>
       </form>
       <Login submitText="Delete account" apiPath="/api/user/delete" v-on:login="updateAuth()"/>
@@ -43,3 +43,19 @@ export default {
     },
 };
 </script>
+
+<style scoped lang="scss">
+@import "../styles/settings.scss";
+
+.content {
+  text-align: center;
+}
+
+#invalidate {
+  margin-bottom: $margin1;
+}
+
+.login {
+  display: inline-block;
+}
+</style>
