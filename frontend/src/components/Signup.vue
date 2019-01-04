@@ -29,7 +29,8 @@ export default {
                 password: this.password,
             };
             this.$http.post('/api/user', user)
-                .then(() => {
+                .then((response) => {
+                    console.log(`Error ${JSON.stringify(response)}`);
                     this.$emit('signup');
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);

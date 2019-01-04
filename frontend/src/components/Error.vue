@@ -1,19 +1,37 @@
 <template>
   <div class="error" v-on:click="hide">
-    <div class="pointer"/>
+    <div class="pointer up"/>
+    <div class="pointer right"/>
+    <div class="pointer left"/>
     <div class="body">
       <slot></slot>
     </div>
+    <div class="pointer down"/>
   </div>
 </template>
 
 <script>
 export default {
     name: 'Error',
+    props: {
+        direction: {
+            type: String,
+            default: 'up',
+        },
+    },
     methods: {
         hide() {
-            this.$el.style.visibility = "hidden";
+            this.$el.style.display = 'none';
         },
+    },
+    mounted() {
+        /* eslint-disable no-param-reassign */
+        this.$el.querySelectorAll('.pointer').forEach((c) => {
+            c.style.visibility = 'hidden';
+        });
+
+        this.$el.querySelector(".pointer." + this.direction).style.visibility = 'visible'
+        /* eslint-enable no-param-reassign */
     },
 };
 </script>
@@ -31,8 +49,35 @@ export default {
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   border-bottom: 10px solid $error;
-  position: relative;
+  position: absolute;
   margin: auto;
+
+  &.up {
+    left: 0;
+    right: 0;
+    top: -8px;
+  }
+
+  &.down {
+    transform: rotate(180deg);
+    left: 0;
+    right: 0;
+    bottom: -8px;
+  }
+
+  &.left {
+    transform: rotate(-90deg);
+    left: -8px;
+    top: 0;
+    bottom: 0;
+  }
+
+  &.right {
+    transform: rotate(90deg);
+    right: -8px;
+    top: 0;
+    bottom: 0;
+  }
 }
 
 .body {

@@ -41,8 +41,17 @@ func formatError(err error, object string, action string) error {
 		return nil
 	} else if err == sql.ErrNoRows {
 		return &NotFoundError{Object: object}
-	} else if sqlErr, ok := err.(*pq.Error); ok && sqlErr.Code.Class() == "08" {
-		return &ConnectionError{InternalError: err.Error()}
+	} else if sqlErr, ok := err.(*pq.Error); ok {
+		switch (sqlErr.Code.Class()) {
+		case "08":
+			return &ConnectionError{InternalError: err.Error()}
+		case "22":
+			return &DataViolation{Violation: sqlErr.Detail}
+		case "23":
+            if (sqlErr.Code.Name() == "unique_violation") {
+                return &UniquenessViolation{Object: object}
+            }
+		}
 	}
 
 	return &UnexpectedError{Action: action, InternalError: err.Error()}

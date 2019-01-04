@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/jbrunsting/transient/backend/user"
+	"github.com/jbrunsting/transient/backend/handlers"
 	"github.com/jbrunsting/transient/backend/database"
 )
 
@@ -31,7 +31,7 @@ func main() {
 	}
 	defer databaseHandler.Close()
 
-	u := user.NewUserHandler(databaseHandler)
+	u := handlers.NewUserHandler(databaseHandler)
 
 	r.HandleFunc("/user", u.Get).Methods("GET")
 	r.HandleFunc("/user", u.Post).Methods("POST")

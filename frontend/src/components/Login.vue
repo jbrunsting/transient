@@ -45,11 +45,11 @@ export default {
         login() {
             /* eslint-disable no-param-reassign */
             this.$el.querySelectorAll('.error').forEach((c) => {
-                c.style.visibility = 'hidden';
+                c.style.display = 'none';
             });
 
             if (this.username === '' || this.password === '') {
-                this.$el.querySelector('.empty.error').style.visibility = 'visible';
+                this.$el.querySelector('.empty.error').style.display = 'inline-block';
                 return;
             }
 
@@ -63,10 +63,10 @@ export default {
                     this.$emit('login');
                 }).catch((e) => {
                     if (e.response.status === 401) {
-                        this.$el.querySelector('.login.error').style.visibility = 'visible';
+                        this.$el.querySelector('.login.error').style.display = 'inline-block';
                     } else {
                         console.log(e.response);
-                        this.$el.querySelector('.unknown.error').style.visibility = 'visible';
+                        this.$el.querySelector('.unknown.error').style.display = 'inline-block';
                         if (e) {
                             console.log(`${JSON.stringify(e)}`);
                         }
@@ -102,6 +102,6 @@ form {
 
 .error {
   position: absolute;
-  visibility: hidden;
+  display: none;
 }
 </style>
