@@ -30,7 +30,7 @@ export default {
             c.style.visibility = 'hidden';
         });
 
-        this.$el.querySelector(".pointer." + this.direction).style.visibility = 'visible'
+        this.$el.querySelector(`.pointer.${this.direction}`).style.visibility = 'visible';
         /* eslint-enable no-param-reassign */
     },
 };
@@ -40,6 +40,7 @@ export default {
 @import "../styles/settings.scss";
 
 .error {
+  z-index: 100;
   display: inline-block;
 }
 

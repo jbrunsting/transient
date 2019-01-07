@@ -16,11 +16,11 @@ Vue.prototype.$http.getProtected = function() {
         })
 };
 
-Vue.prototype.CONNECTION = 'connection'
-Vue.prototype.NOT_FOUND = 'not_found'
-Vue.prototype.DATA_VIOLATION = 'data_volation'
-Vue.prototype.UNIQUENESS_VIOLATION = 'uniqueness_violation'
-Vue.prototype.UNEXPECTED = 'unexpected'
+Vue.prototype.CONNECTION = 'connection';
+Vue.prototype.NOT_FOUND = 'not_found';
+Vue.prototype.DATA_VIOLATION = 'data_volation';
+Vue.prototype.UNIQUENESS_VIOLATION = 'uniqueness_violation';
+Vue.prototype.UNEXPECTED = 'unexpected';
 
 new Vue({
     router,

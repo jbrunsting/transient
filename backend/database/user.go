@@ -17,7 +17,7 @@ type DatabaseHandler interface {
 	DeleteOtherSessions(currentSessionId string) error
 	DeleteSession(sessionId string) error
 	DeleteUser(id string) error
-    Close()
+	Close()
 }
 
 type databaseHandler struct {
@@ -42,15 +42,15 @@ func formatError(err error, object string, action string) error {
 	} else if err == sql.ErrNoRows {
 		return &NotFoundError{Object: object}
 	} else if sqlErr, ok := err.(*pq.Error); ok {
-		switch (sqlErr.Code.Class()) {
+		switch sqlErr.Code.Class() {
 		case "08":
 			return &ConnectionError{InternalError: err.Error()}
 		case "22":
 			return &DataViolation{Violation: sqlErr.Detail}
 		case "23":
-            if (sqlErr.Code.Name() == "unique_violation") {
-                return &UniquenessViolation{Object: object}
-            }
+			if sqlErr.Code.Name() == "unique_violation" {
+				return &UniquenessViolation{Object: object}
+			}
 		}
 	}
 
@@ -92,7 +92,7 @@ func (h *databaseHandler) getUser(whereCondition string, whereArgs ...interface{
 		if sessionId.Valid && expiry.Valid {
 			u.Sessions = append(u.Sessions, models.Session{
 				SessionId: sessionId.String,
-				Expiry: expiry.Time,
+				Expiry:    expiry.Time,
 			})
 		}
 
