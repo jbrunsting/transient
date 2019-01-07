@@ -51,6 +51,7 @@ body {
   color: $text0;
 }
 
+textarea,
 input {
   font-family: $font-stack;
   color: $text0;

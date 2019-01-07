@@ -2,9 +2,13 @@
   <div class="about">
     <h1>Welcome {{ username }}</h1>
     <p>{{ email }}</p>
+    <CreatePost/>
   </div>
 </template>
+
 <script>
+import CreatePost from '@/components/CreatePost.vue';
+
 export default {
     name: 'about',
     data() {
@@ -15,6 +19,9 @@ export default {
     },
     props: {
         authenticated: Boolean,
+    },
+    components: {
+        CreatePost,
     },
     methods: {
         updateAuth() {
