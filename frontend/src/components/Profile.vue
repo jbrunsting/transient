@@ -22,7 +22,7 @@ export default {
         },
     },
     created() {
-        this.$http.get('/api/user')
+        this.$http.getProtected('/api/user')
             .then((response) => {
                 this.username = response.data.username;
                 this.email = response.data.email;

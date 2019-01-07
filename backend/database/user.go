@@ -78,7 +78,11 @@ func (h *databaseHandler) getUser(whereCondition string, whereArgs ...interface{
 	}
 	defer rows.Close()
 
-	for rows.Next() {
+	if !rows.Next() {
+		return u, &NotFoundError{"user"}
+	}
+
+	for {
 		var sessionId sql.NullString
 		var expiry pq.NullTime
 		if err = rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email, &sessionId, &expiry); err != nil {
@@ -90,6 +94,10 @@ func (h *databaseHandler) getUser(whereCondition string, whereArgs ...interface{
 				SessionId: sessionId.String,
 				Expiry: expiry.Time,
 			})
+		}
+
+		if !rows.Next() {
+			break
 		}
 	}
 

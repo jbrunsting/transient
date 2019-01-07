@@ -5,6 +5,16 @@ import router from './router';
 
 Vue.config.productionTip = false;
 Vue.prototype.$http = axios;
+Vue.prototype.$http.getProtected = function() {
+    return axios.get(...arguments)
+        .catch((e) => {
+            console.log("CATCH")
+            if (e.response.status === 401) {
+                this.$router.push('/');
+            }
+            return response
+        })
+};
 
 Vue.prototype.CONNECTION = 'connection'
 Vue.prototype.NOT_FOUND = 'not_found'
