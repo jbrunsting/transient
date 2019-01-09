@@ -3,20 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
-    "encoding/json"
 
 	"github.com/gorilla/mux"
 
-	"github.com/jbrunsting/transient/backend/handlers"
+	"github.com/jbrunsting/transient/backend/api"
 	"github.com/jbrunsting/transient/backend/database"
 )
 
 type response struct {
 	Message string `json:"message"`
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(response{Message: "Hello world!"})
 }
 
 func main() {
@@ -31,15 +26,17 @@ func main() {
 	}
 	defer databaseHandler.Close()
 
-	u := handlers.NewUserHandler(databaseHandler)
+	a := api.NewApi(databaseHandler)
 
-	r.HandleFunc("/user", u.Get).Methods("GET")
-	r.HandleFunc("/user", u.Post).Methods("POST")
-	r.HandleFunc("/user/login", u.LoginPost).Methods("POST")
-	r.HandleFunc("/user/logout", u.LogoutPost).Methods("POST")
-	r.HandleFunc("/user/invalidate", u.InvalidatePost).Methods("POST")
-	r.HandleFunc("/user/delete", u.DeletePost).Methods("POST")
-	r.HandleFunc("/user/authenticated", u.AuthenticatedGet).Methods("GET")
+	r.HandleFunc("/user", a.UserGet).Methods("GET")
+	r.HandleFunc("/user", a.UserPost).Methods("POST")
+	r.HandleFunc("/user/login", a.UserLoginPost).Methods("POST")
+	r.HandleFunc("/user/logout", a.UserLogoutPost).Methods("POST")
+	r.HandleFunc("/user/invalidate", a.UserInvalidatePost).Methods("POST")
+	r.HandleFunc("/user/delete", a.UserDeletePost).Methods("POST")
+	r.HandleFunc("/user/authenticated", a.UserAuthenticatedGet).Methods("GET")
+	r.HandleFunc("/posts/{id}", a.PostsGet).Methods("GET")
+	r.HandleFunc("/post", a.PostPost).Methods("POST")
 
 	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)

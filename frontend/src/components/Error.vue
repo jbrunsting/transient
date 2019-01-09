@@ -30,7 +30,9 @@ export default {
             c.style.visibility = 'hidden';
         });
 
-        this.$el.querySelector(`.pointer.${this.direction}`).style.visibility = 'visible';
+        this.$el.querySelectorAll(`.pointer.${this.direction}`).forEach((c) => {
+            c.style.visibility = 'visible';
+        });
         /* eslint-enable no-param-reassign */
     },
 };

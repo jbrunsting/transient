@@ -1,4 +1,4 @@
-package handlers
+package api
 
 import (
 	"encoding/json"
@@ -11,33 +11,18 @@ import (
 	"github.com/jbrunsting/transient/backend/models"
 )
 
-type UserHandler interface {
-	Get(w http.ResponseWriter, r *http.Request)
-	AuthenticatedGet(w http.ResponseWriter, r *http.Request)
-
-	Post(w http.ResponseWriter, r *http.Request)
-	LoginPost(w http.ResponseWriter, r *http.Request)
-	LogoutPost(w http.ResponseWriter, r *http.Request)
-	InvalidatePost(w http.ResponseWriter, r *http.Request)
-	DeletePost(w http.ResponseWriter, r *http.Request)
-}
-
-type userHandler struct {
+type userApi struct {
 	db database.DatabaseHandler
 }
 
-func NewUserHandler(db database.DatabaseHandler) UserHandler {
-	return &userHandler{db: db}
-}
-
-func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
 		http.Error(w, "Not logged in", http.StatusForbidden)
 		return
 	}
 
-	u, err := h.db.GetUserFromSession(sessionId)
+	u, err := a.db.GetUserFromSession(sessionId)
 	if err != nil {
 		handleDbErr(err, w)
 		return
@@ -52,7 +37,7 @@ func (h *userHandler) Get(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *userHandler) Post(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserPost(w http.ResponseWriter, r *http.Request) {
 	var u models.User
 	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
@@ -83,7 +68,7 @@ func (h *userHandler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.db.CreateUser(u, s); err != nil {
+	if err = a.db.CreateUser(u, s); err != nil {
 		handleDbErr(err, w)
 		return
 	}
@@ -93,7 +78,7 @@ func (h *userHandler) Post(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *userHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 	var id models.Identification
 	err := json.NewDecoder(r.Body).Decode(&id)
 	if err != nil {
@@ -101,7 +86,7 @@ func (h *userHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.GetUserFromUsername(id.Username)
+	u, err := a.db.GetUserFromUsername(id.Username)
 	if err != nil {
 		if _, ok := err.(*database.NotFoundError); ok {
 			http.Error(w, "Username or password does not match", http.StatusUnauthorized)
@@ -123,7 +108,7 @@ func (h *userHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.db.CreateSession(s); err != nil {
+	if err = a.db.CreateSession(s); err != nil {
 		handleDbErr(err, w)
 		return
 	}
@@ -133,14 +118,14 @@ func (h *userHandler) LoginPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *userHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserLogoutPost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
 		http.Error(w, "Not logged in", http.StatusForbidden)
 		return
 	}
 
-	if err = h.db.DeleteSession(sessionId); err != nil {
+	if err = a.db.DeleteSession(sessionId); err != nil {
 		handleDbErr(err, w)
 		return
 	}
@@ -150,14 +135,14 @@ func (h *userHandler) LogoutPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *userHandler) InvalidatePost(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserInvalidatePost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
 		http.Error(w, "Not logged in", http.StatusForbidden)
 		return
 	}
 
-	if err = h.db.DeleteOtherSessions(sessionId); err != nil {
+	if err = a.db.DeleteOtherSessions(sessionId); err != nil {
 		handleDbErr(err, w)
 		return
 	}
@@ -166,7 +151,7 @@ func (h *userHandler) InvalidatePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *userHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserDeletePost(w http.ResponseWriter, r *http.Request) {
 	var id models.Identification
 	err := json.NewDecoder(r.Body).Decode(&id)
 	if err != nil {
@@ -180,7 +165,7 @@ func (h *userHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.db.GetUserFromSession(sessionId)
+	u, err := a.db.GetUserFromSession(sessionId)
 	if err != nil {
 		if _, ok := err.(*database.NotFoundError); ok {
 			http.Error(w, "Username or password does not match", http.StatusUnauthorized)
@@ -195,7 +180,7 @@ func (h *userHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = h.db.DeleteUser(u.Id); err != nil {
+	if err = a.db.DeleteUser(u.Id); err != nil {
 		handleDbErr(err, w)
 		return
 	}
@@ -205,14 +190,14 @@ func (h *userHandler) DeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *userHandler) AuthenticatedGet(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) UserAuthenticatedGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
 		http.Error(w, "Not logged in", http.StatusBadRequest)
 		return
 	}
 
-	if _, err = h.db.GetUserFromSession(sessionId); err != nil {
+	if _, err = a.db.GetUserFromSession(sessionId); err != nil {
 		handleDbErr(err, w)
 		return
 	}

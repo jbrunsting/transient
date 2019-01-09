@@ -5,11 +5,10 @@
     </Error>
     <form @submit.prevent="createPost">
       <input placeholder="title" v-model="title">
-      <input type="url" placeholder="url" v-model="url">
+      <input type="url" placeholder="url" v-model="postUrl">
       <textarea v-model="content" placeholder="content"></textarea>
       <button type="submit">CreatePost</button>
     </form>
-    <h2>{{ response }}</h2>
   </div>
 </template>
 
@@ -21,8 +20,8 @@ export default {
     data() {
         return {
             title: '',
-            url: '',
             content: '',
+            postUrl: '',
         };
     },
     components: {
@@ -37,10 +36,10 @@ export default {
 
             const post = {
                 title: this.title,
-                url: this.url,
                 content: this.content,
+                postUrl: this.postUrl,
             };
-            // TODO: Post protected
+
             this.$http.post('/api/post', post)
                 .then(() => {
                     this.$emit('createPost');

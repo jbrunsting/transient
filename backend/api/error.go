@@ -1,4 +1,4 @@
-package handlers
+package api
 
 import (
 	"encoding/json"
@@ -23,7 +23,6 @@ type httpError struct {
 
 func sendError(w http.ResponseWriter, code int, e httpError) {
 	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Ssending error %v\n", e)
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(e)
 }

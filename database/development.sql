@@ -10,3 +10,13 @@ CREATE TABLE IF NOT EXISTS Sessions (
     sessionId VARCHAR(36) NOT NULL PRIMARY KEY,
     expiry TIMESTAMP NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS Posts (
+    id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    postId VARCHAR(36) NOT NULL PRIMARY KEY,
+    time TIMESTAMP NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT,
+    postUrl TEXT,
+    imageUrl TEXT
+);
