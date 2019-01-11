@@ -26,7 +26,7 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 
 	rows, err := h.db.Query(`
 	SELECT id, postId, time, title, content, postUrl, imageUrl
-	FROM Posts WHERE id = $1`, id)
+	FROM Posts WHERE id = $1 ORDER BY time DESC`, id)
 	if err != nil {
 		return posts, formatError(err, "post", "creating post")
 	}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -17,13 +18,13 @@ type postApi struct {
 }
 
 func (a *postApi) PostsGet(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
+	vars := mux.Vars(r)
 
-    id, ok := vars["id"]
-    if !ok {
-        http.Error(w, "Must provide a user ID to get the posts for", http.StatusBadRequest)
-        return
-    }
+	id, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide a user ID to get the posts for", http.StatusBadRequest)
+		return
+	}
 
 	posts, err := a.db.GetPosts(id)
 	if err != nil {
@@ -65,6 +66,8 @@ func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.PostId = id.String()
+
+	p.Time = time.Now()
 
 	if err = a.db.CreatePost(p); err != nil {
 		handleDbErr(err, w)
