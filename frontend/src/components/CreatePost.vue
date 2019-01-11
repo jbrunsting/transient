@@ -42,6 +42,9 @@ export default {
 
             this.$http.post('/api/post', post)
                 .then(() => {
+                    this.title = '';
+                    this.content = '';
+                    this.postUrl = '';
                     this.$emit('createPost');
                 }).catch((e) => {
                     console.log(`Error: ${e.response.data.message}`);
