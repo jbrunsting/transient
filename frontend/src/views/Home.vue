@@ -3,7 +3,7 @@
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <div class="content">
       <Landing v-if="!authenticated" v-on:auth="updateAuth()"/>
-      <Profile v-if="authenticated"/>
+      <Home v-if="authenticated"/>
     </div>
   </div>
 </template>
@@ -11,7 +11,7 @@
 <script>
 import Nav from '@/components/Nav.vue';
 import Landing from '@/components/Landing.vue';
-import Profile from '@/components/Profile.vue';
+import Home from '@/components/Home.vue';
 
 export default {
     name: 'home',
@@ -21,7 +21,7 @@ export default {
     components: {
         Nav,
         Landing,
-        Profile,
+        Home,
     },
     methods: {
         updateAuth() {

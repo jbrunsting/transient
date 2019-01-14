@@ -16,16 +16,14 @@ export default {
     },
     methods: {
         updateAuth() {
-            this.$http.get('/api/user/authenticated')
+            this.$http.get('/api/authenticated')
                 .then(() => {
                     if (!this.authenticated) {
                         this.authenticated = true;
-                        this.$router.push('/');
                     }
                 }).catch(() => {
                     if (this.authenticated || this.authenticated == null) {
                         this.authenticated = false;
-                        this.$router.push('/');
                     }
                 });
         },

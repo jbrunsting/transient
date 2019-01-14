@@ -28,13 +28,14 @@ func main() {
 
 	a := api.NewApi(databaseHandler)
 
-	r.HandleFunc("/user", a.UserGet).Methods("GET")
+	r.HandleFunc("/user", a.SelfGet).Methods("GET")
+	r.HandleFunc("/user/{username}", a.UserGet).Methods("GET")
 	r.HandleFunc("/user", a.UserPost).Methods("POST")
 	r.HandleFunc("/user/login", a.UserLoginPost).Methods("POST")
 	r.HandleFunc("/user/logout", a.UserLogoutPost).Methods("POST")
 	r.HandleFunc("/user/invalidate", a.UserInvalidatePost).Methods("POST")
 	r.HandleFunc("/user/delete", a.UserDeletePost).Methods("POST")
-	r.HandleFunc("/user/authenticated", a.UserAuthenticatedGet).Methods("GET")
+	r.HandleFunc("/authenticated", a.UserAuthenticatedGet).Methods("GET")
 	r.HandleFunc("/posts/{id}", a.PostsGet).Methods("GET")
 	r.HandleFunc("/post", a.PostPost).Methods("POST")
 

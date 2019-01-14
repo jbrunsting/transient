@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid"
+	"github.com/gorilla/mux"
 
 	"github.com/jbrunsting/transient/backend/database"
 	"github.com/jbrunsting/transient/backend/models"
@@ -15,7 +16,7 @@ type userApi struct {
 	db database.DatabaseHandler
 }
 
-func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
+func (a *userApi) SelfGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
 		http.Error(w, "Not logged in", http.StatusForbidden)
@@ -23,6 +24,30 @@ func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(models.User{
+		Id:             u.Id,
+		Identification: models.Identification{Username: u.Username},
+		Email:          u.Email,
+	})
+}
+
+func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	username, ok := vars["username"]
+	if !ok {
+		http.Error(w, "Must provide a username", http.StatusBadRequest)
+		return
+	}
+
+	u, err := a.db.GetUserFromUsername(username)
 	if err != nil {
 		handleDbErr(err, w)
 		return

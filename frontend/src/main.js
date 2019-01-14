@@ -8,7 +8,6 @@ Vue.prototype.$http = axios;
 Vue.prototype.$http.getProtected = function() {
     return axios.get(...arguments)
         .catch((e) => {
-            console.log("CATCH")
             if (e.response.status === 401) {
                 this.$router.push('/');
             }

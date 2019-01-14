@@ -1,15 +1,11 @@
 <template>
-  <div class="about">
+  <div class="home">
     <h1>Welcome {{ username }}</h1>
     <p>{{ email }}</p>
     <CreatePost v-on:createPost="getPosts"/>
     <ul>
       <li v-for="post in posts" :key="post.postId">
-        <ul>
-          <a v-if="post.postUrl" :href="post.postUrl"><h3>{{ post.title }}</h3></a>
-          <h3 v-else>{{ post.title }}</h3>
-          <p>{{ post.content }}</p>
-        </ul>
+        <Post :post="post"/>
       </li>
     </ul>
   </div>
@@ -17,9 +13,10 @@
 
 <script>
 import CreatePost from '@/components/CreatePost.vue';
+import Post from '@/components/Post.vue';
 
 export default {
-    name: 'about',
+    name: 'home',
     data() {
         return {
             id: '',
@@ -31,6 +28,7 @@ export default {
     props: { authenticated: Boolean },
     components: {
         CreatePost,
+        Post,
     },
     methods: {
         updateAuth() {

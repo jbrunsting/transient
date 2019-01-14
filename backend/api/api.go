@@ -7,6 +7,7 @@ import (
 )
 
 type Api interface {
+	SelfGet(w http.ResponseWriter, r *http.Request)
 	UserGet(w http.ResponseWriter, r *http.Request)
 	UserAuthenticatedGet(w http.ResponseWriter, r *http.Request)
 	UserPost(w http.ResponseWriter, r *http.Request)
