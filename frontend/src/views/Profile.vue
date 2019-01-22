@@ -50,7 +50,7 @@ export default {
             .catch((e) => {
                 console.log(JSON.stringify(e));
                 if (e.response.status === 404) {
-                    this.$router.push('/404');
+                    this.$router.replace('/404');
                 } else {
                     // TODO: Set up proper error page for unexpected errors
                     console.log(JSON.stringify(e));
