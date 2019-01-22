@@ -16,7 +16,9 @@ type DatabaseHandler interface {
 	DeleteUser(id string) error
 
 	GetPosts(id string) ([]models.Post, error)
+	GetPost(postId string) (models.Post, error)
 	CreatePost(p models.Post) error
+	DeletePost(postId string) error
 
 	Close()
 }

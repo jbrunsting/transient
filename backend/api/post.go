@@ -77,3 +77,45 @@ func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *postApi) PostDelete(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusForbidden)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	postId, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide a post ID to delete", http.StatusBadRequest)
+		return
+	}
+
+	post, err := a.db.GetPost(postId)
+    if err != nil {
+        handleDbErr(err, w)
+        return
+    }
+
+	if post.Id != u.Id {
+		http.Error(w, "Currently logged in user is not the owner of the post", http.StatusForbidden)
+		return
+	}
+
+    err = a.db.DeletePost(postId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}

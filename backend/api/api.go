@@ -18,6 +18,7 @@ type Api interface {
 
 	PostsGet(w http.ResponseWriter, r *http.Request)
 	PostPost(w http.ResponseWriter, r *http.Request)
+	PostDelete(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {

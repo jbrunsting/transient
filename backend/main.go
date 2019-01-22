@@ -38,6 +38,7 @@ func main() {
 	r.HandleFunc("/authenticated", a.UserAuthenticatedGet).Methods("GET")
 	r.HandleFunc("/posts/{id}", a.PostsGet).Methods("GET")
 	r.HandleFunc("/post", a.PostPost).Methods("POST")
+	r.HandleFunc("/post/{id}", a.PostDelete).Methods("DELETE")
 
 	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)

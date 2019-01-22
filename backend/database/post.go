@@ -28,7 +28,7 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 	SELECT id, postId, time, title, content, postUrl, imageUrl
 	FROM Posts WHERE id = $1 ORDER BY time DESC`, id)
 	if err != nil {
-		return posts, formatError(err, "post", "creating post")
+		return posts, formatError(err, "post", "getting posts")
 	}
 	defer rows.Close()
 
@@ -59,4 +59,50 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 	}
 
 	return posts, nil
+}
+
+func (h *postHandler) GetPost(postId string) (models.Post, error) {
+	var post models.Post
+
+	rows, err := h.db.Query(`
+	SELECT id, postId, time, title, content, postUrl, imageUrl
+	FROM Posts WHERE postId = $1`, postId)
+	if err != nil {
+		return post, formatError(err, "post", "retrieving post")
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var content sql.NullString
+		var postUrl sql.NullString
+		var imageUrl sql.NullString
+		err = rows.Scan(&post.Id, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl)
+		post.Content = content.String
+		post.PostUrl = postUrl.String
+		post.ImageUrl = imageUrl.String
+	} else if rows.Err() == nil {
+		return post, &NotFoundError{"post"}
+	}
+
+	if rows.Err() != nil {
+		err = rows.Err()
+	}
+
+	if err != nil {
+		return post, &UnexpectedError{
+			Action:        "parsing user",
+			InternalError: err.Error(),
+		}
+	}
+
+	return post, nil
+}
+
+func (h *postHandler) DeletePost(postId string) error {
+	_, err := h.db.Exec(`DELETE FROM Posts WHERE postId = $1`, postId)
+	if err != nil {
+		return formatError(err, "post", "deleting post")
+	}
+
+	return nil
 }
