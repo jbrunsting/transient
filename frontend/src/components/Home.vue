@@ -5,7 +5,7 @@
     <CreatePost v-on:createPost="getPosts"/>
     <ul>
       <li v-for="post in posts" :key="post.postId">
-        <Post :post="post"/>
+        <Post :post="post" :showControls="true"/>
       </li>
     </ul>
   </div>

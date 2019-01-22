@@ -4,7 +4,7 @@
     <h3 v-else>{{ post.title }}</h3>
     <p>{{ post.content }}</p>
     <p>{{ new Date(post.time).toLocaleString() }}</p>
-    <form @submit.prevent="deletePost">
+    <form v-if="showControls" @submit.prevent="deletePost">
       <button type="submit">Delete</button>
     </form>
   </div>
@@ -13,7 +13,10 @@
 <script>
 export default {
     name: 'post',
-    props: { post: Object },
+    props: {
+        post: Object,
+        showControls: { type: Boolean, default: false },
+    },
     methods: {
         deletePost() {
             this.$http.delete(`/api/post/${this.post.postId}`, {})
