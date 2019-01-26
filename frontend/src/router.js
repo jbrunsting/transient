@@ -34,6 +34,7 @@ export default new Router({
                 './views/Profile.vue',
             ),
         },
+        // TODO: Don't allow unless authenticated
         {
             path: '/following',
             name: 'following',

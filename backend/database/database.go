@@ -20,13 +20,18 @@ type DatabaseHandler interface {
 	CreatePost(p models.Post) error
 	DeletePost(postId string) error
 
-	Close()
+	CreateFollowing(id, followingId string) error
+	GetFollowings(id string) ([]string, error)
+	DeleteFollowing(id, followingId string) error
+
+    Close()
 }
 
 type databaseHandler struct {
 	db *sql.DB
 	userHandler
 	postHandler
+	followingHandler	
 }
 
 func NewDatabaseHandler() (DatabaseHandler, error) {
@@ -34,7 +39,7 @@ func NewDatabaseHandler() (DatabaseHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &databaseHandler{db: db, userHandler: userHandler{db}, postHandler: postHandler{db}}, nil
+	return &databaseHandler{db: db, userHandler: userHandler{db}, postHandler: postHandler{db}, followingHandler: followingHandler{db}}, nil
 }
 
 func (h *databaseHandler) Close() {

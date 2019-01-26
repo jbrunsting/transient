@@ -40,6 +40,10 @@ func main() {
 	r.HandleFunc("/post", a.PostPost).Methods("POST")
 	r.HandleFunc("/post/{id}", a.PostDelete).Methods("DELETE")
 
+	r.HandleFunc("/followings", a.FollowingsGet).Methods("GET")
+	r.HandleFunc("/following/{id}", a.FollowingPost).Methods("POST")
+	r.HandleFunc("/following/{id}", a.FollowingDelete).Methods("DELETE")
+
 	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)
 }

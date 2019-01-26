@@ -21,11 +21,9 @@ export default {
         },
     },
     created() {
-        this.$http.getProtected('/api/user')
+        this.$http.getProtected('/api/followings')
             .then((response) => {
-                this.id = response.data.id;
-                this.username = response.data.username;
-                this.email = response.data.email;
+                console.log(response.data);
             }).catch((e) => {
                 console.log(`Error ${JSON.stringify(e)}`);
             });
