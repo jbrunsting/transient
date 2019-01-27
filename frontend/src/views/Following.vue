@@ -2,14 +2,16 @@
   <div class="following">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <div class="content">
-      <Following/>
+      <Followings/>
+      <Follow/>
     </div>
   </div>
 </template>
 
 <script>
 import Nav from '@/components/Nav.vue';
-import Following from '@/components/Following.vue';
+import Followings from '@/components/Followings.vue';
+import Follow from '@/components/Follow.vue';
 
 export default {
     name: 'following',
@@ -18,7 +20,8 @@ export default {
     },
     components: {
         Nav,
-        Following,
+        Followings,
+        Follow,
     },
     methods: {
         updateAuth() {
