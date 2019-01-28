@@ -9,11 +9,13 @@ import (
 type DatabaseHandler interface {
 	GetUserFromUsername(username string) (models.User, error)
 	GetUserFromSession(sessionId string) (models.User, error)
+	GetUserFromId(sessionId string) (models.User, error)
 	CreateUser(u models.User, s models.Session) error
 	CreateSession(s models.Session) error
 	DeleteOtherSessions(currentSessionId string) error
 	DeleteSession(sessionId string) error
 	DeleteUser(id string) error
+	SearchUsers(search string, limit int) ([]models.User, error)
 
 	GetPosts(id string) ([]models.Post, error)
 	GetPost(postId string) (models.Post, error)

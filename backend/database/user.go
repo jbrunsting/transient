@@ -21,6 +21,10 @@ func (h *userHandler) GetUserFromSession(sessionId string) (models.User, error) 
 	return h.getUser("sessionId = $1", sessionId)
 }
 
+func (h *userHandler) GetUserFromId(id string) (models.User, error) {
+	return h.getUser("id = $1", id)
+}
+
 func (h *userHandler) getUser(whereCondition string, whereArgs ...interface{}) (models.User, error) {
 	var u models.User
 
@@ -121,4 +125,65 @@ func (h *userHandler) DeleteOtherSessions(currentSessionId string) error {
     WHERE sessionId <> $1 AND id = (SELECT id FROM Sessions WHERE sessionId = $1)`
 	_, err := h.db.Exec(s, currentSessionId)
 	return formatError(err, "session", "deleting other sessions")
+}
+
+func (h *userHandler) SearchUsers(search string, limit int) ([]models.User, error) {
+	var users []models.User
+	usersMap := make(map[string]*models.User)
+
+	s := `
+    SELECT Users.id, username, password, email, Sessions.sessionId, Sessions.expiry FROM Users
+	LEFT JOIN Sessions ON Users.id = Sessions.id
+    WHERE similarity(username, $1) > 0.2
+    ORDER BY similarity(username, $1) DESC
+    LIMIT $2`
+	rows, err := h.db.Query(s, search, limit)
+	if err != nil {
+		return users, formatError(err, "user", "querying users")
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return users, nil
+	}
+
+	for {
+		var u models.User
+
+		var sessionId sql.NullString
+		var expiry pq.NullTime
+		if err = rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email, &sessionId, &expiry); err != nil {
+			break
+		}
+
+		if _, ok := usersMap[u.Id]; !ok {
+			usersMap[u.Id] = &u
+		}
+
+		usersMap[u.Id].Sessions = append(usersMap[u.Id].Sessions, models.Session{
+			SessionId: sessionId.String,
+			Expiry:    expiry.Time,
+		})
+
+		if !rows.Next() {
+			break
+		}
+	}
+
+	if rows.Err() != nil {
+		err = rows.Err()
+	}
+
+	if err != nil {
+		return users, &UnexpectedError{
+			Action:        "parsing user",
+			InternalError: err.Error(),
+		}
+	}
+
+	for _, u := range usersMap {
+		users = append(users, *u)
+	}
+
+	return users, nil
 }

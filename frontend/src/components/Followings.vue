@@ -15,11 +15,6 @@ export default {
         };
     },
     props: { authenticated: Boolean },
-    methods: {
-        updateAuth() {
-            this.$emit('auth');
-        },
-    },
     created() {
         this.$http.getProtected('/api/followings')
             .then((response) => {

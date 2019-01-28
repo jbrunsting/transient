@@ -41,13 +41,13 @@ func (a *userApi) SelfGet(w http.ResponseWriter, r *http.Request) {
 func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	username, ok := vars["username"]
+	id, ok := vars["id"]
 	if !ok {
 		http.Error(w, "Must provide a username", http.StatusBadRequest)
 		return
 	}
 
-	u, err := a.db.GetUserFromUsername(username)
+	u, err := a.db.GetUserFromId(id)
 	if err != nil {
 		handleDbErr(err, w)
 		return
@@ -229,4 +229,34 @@ func (a *userApi) UserAuthenticatedGet(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (a *userApi) UsersSearchGet(w http.ResponseWriter, r *http.Request) {
+	params := r.URL.Query()
+
+	username := params.Get("username")
+	if username == "" {
+		http.Error(w, "Query parameter 'username' required", http.StatusBadRequest)
+		return
+	}
+
+	us, err := a.db.SearchUsers(username, 10)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	var users []models.User
+
+	for _, u := range us {
+		users = append(users, models.User{
+			Id:             u.Id,
+			Identification: models.Identification{Username: u.Username},
+			Email:          u.Email,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
 }
