@@ -1,6 +1,11 @@
 <template>
   <div class="home">
     <h1>Welcome {{ username }}</h1>
+    <ul>
+      <li v-for="id in followings" :key="id">
+        <h3>{{ id }}</h3>
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -14,14 +19,6 @@ export default {
             email: '',
         };
     },
-    props: { authenticated: Boolean },
-    created() {
-        this.$http.getProtected('/api/followings')
-            .then((response) => {
-                console.log(response.data);
-            }).catch((e) => {
-                console.log(`Error ${JSON.stringify(e)}`);
-            });
-    },
+    props: { authenticated: Boolean, followings: Array },
 };
 </script>
