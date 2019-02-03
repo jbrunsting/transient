@@ -2,6 +2,8 @@ package database
 
 import (
 	"database/sql"
+
+	"github.com/jbrunsting/transient/backend/models"
 )
 
 type followingHandler struct {
@@ -19,26 +21,25 @@ func (h *followingHandler) CreateFollowing(id, followingId string) error {
 	return nil
 }
 
-func (h *followingHandler) GetFollowings(id string) ([]string, error) {
-	followings := []string{}
+func (h *followingHandler) GetFollowings(id string) ([]models.User, error) {
+	followings := []models.User{}
 
 	rows, err := h.db.Query(`
-	SELECT followingId
-	FROM Followings WHERE id = $1`, id)
+    SELECT Users.id, username, email FROM Users
+	INNER JOIN Followings ON Users.id = Followings.followingId
+	WHERE Followings.id = $1`, id)
 	if err != nil {
 		return followings, formatError(err, "followings", "getting followings")
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var followingId sql.NullString
-		if err = rows.Scan(&followingId); err != nil {
+		var u models.User
+		if err = rows.Scan(&u.Id, &u.Username, &u.Email); err != nil {
 			break
 		}
 
-		if followingId.String != "" {
-			followings = append(followings, followingId.String)
-		}
+		followings = append(followings, u)
 	}
 
 	if rows.Err() != nil {

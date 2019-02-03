@@ -2,8 +2,8 @@
   <div class="home">
     <h1>Welcome {{ username }}</h1>
     <ul>
-      <li v-for="id in followings" :key="id">
-        <h3>{{ id }}</h3>
+      <li v-for="user in followings" :key="user.id">
+        <h3>{{ user.username }}</h3>
       </li>
     </ul>
   </div>

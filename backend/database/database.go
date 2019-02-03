@@ -23,7 +23,7 @@ type DatabaseHandler interface {
 	DeletePost(postId string) error
 
 	CreateFollowing(id, followingId string) error
-	GetFollowings(id string) ([]string, error)
+	GetFollowings(id string) ([]models.User, error)
 	DeleteFollowing(id, followingId string) error
 
     Close()
