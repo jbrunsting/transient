@@ -2,7 +2,7 @@
   <div class="following">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <div class="content">
-      <Followings v-bind:followings="followings"/>
+      <Followings v-bind:followings="followings"  v-on:follow="updateFollowings()"/>
       <Follow v-bind:followings="followings" v-on:follow="updateFollowings()"/>
     </div>
   </div>

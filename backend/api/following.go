@@ -16,7 +16,7 @@ type followingApi struct {
 func (a *followingApi) FollowingsGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (a *followingApi) FollowingsGet(w http.ResponseWriter, r *http.Request) {
 func (a *followingApi) FollowingPost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -71,7 +71,7 @@ func (a *followingApi) FollowingPost(w http.ResponseWriter, r *http.Request) {
 func (a *followingApi) FollowingDelete(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (a *followingApi) FollowingDelete(w http.ResponseWriter, r *http.Request) {
 func (a *followingApi) FollowingsPostsGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 

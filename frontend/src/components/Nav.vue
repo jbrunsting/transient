@@ -1,7 +1,8 @@
 <template>
   <div class="nav">
     <template v-if="authenticated">
-      <router-link to="/">Profile</router-link>
+      <router-link to="/">Home</router-link>
+      <router-link to="/profile">Profile</router-link>
       <router-link to="/following">Following</router-link>
       <router-link to="/settings">Settings</router-link>
       <Logout v-on:logout="updateAuth()"/>

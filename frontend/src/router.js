@@ -14,6 +14,13 @@ export default new Router({
             component: Home,
         },
         {
+            path: '/profile',
+            name: 'homeprofile',
+            component: () => import(/* webpackChunkName: "profile" */
+                './views/HomeProfile.vue',
+            ),
+        },
+        {
             path: '/settings',
             name: 'settings',
             component: () => import(/* webpackChunkName: "settings" */

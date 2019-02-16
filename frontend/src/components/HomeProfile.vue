@@ -1,19 +1,22 @@
 <template>
-  <div class="home">
-    <h1>Welcome to your home feed {{ username }}</h1>
+  <div class="homeprofile">
+    <h1>Welcome {{ username }}</h1>
+    <p>{{ email }}</p>
+    <CreatePost v-on:createPost="getPosts"/>
     <ul>
       <li v-for="post in posts" :key="post.postId">
-        <Post :post="post"/>
+        <Post :post="post" :showControls="true"/>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+import CreatePost from '@/components/CreatePost.vue';
 import Post from '@/components/Post.vue';
 
 export default {
-    name: 'home',
+    name: 'homeprofile',
     data() {
         return {
             id: '',
@@ -24,6 +27,7 @@ export default {
     },
     props: { authenticated: Boolean },
     components: {
+        CreatePost,
         Post,
     },
     methods: {
@@ -31,9 +35,8 @@ export default {
             this.$emit('auth');
         },
         getPosts() {
-            this.$http.get('/api/followings/posts')
+            this.$http.get(`/api/posts/${this.id}`)
                 .then((response) => {
-                    console.log(this.posts);
                     this.posts = response.data;
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
@@ -48,6 +51,7 @@ export default {
                 this.email = response.data.email;
                 this.getPosts();
             }).catch((e) => {
+                console.log(e);
                 console.log(`Error ${JSON.stringify(e)}`);
             });
     },

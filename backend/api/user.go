@@ -19,7 +19,7 @@ type userApi struct {
 func (a *userApi) SelfGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -146,7 +146,7 @@ func (a *userApi) UserLoginPost(w http.ResponseWriter, r *http.Request) {
 func (a *userApi) UserLogoutPost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -163,7 +163,7 @@ func (a *userApi) UserLogoutPost(w http.ResponseWriter, r *http.Request) {
 func (a *userApi) UserInvalidatePost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 

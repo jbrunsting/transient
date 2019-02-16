@@ -40,7 +40,7 @@ func (a *postApi) PostsGet(w http.ResponseWriter, r *http.Request) {
 func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
 func (a *postApi) PostDelete(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {
-		http.Error(w, "Not logged in", http.StatusForbidden)
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (a *postApi) PostDelete(w http.ResponseWriter, r *http.Request) {
     }
 
 	if post.Id != u.Id {
-		http.Error(w, "Currently logged in user is not the owner of the post", http.StatusForbidden)
+		http.Error(w, "Currently logged in user is not the owner of the post", http.StatusUnauthorized)
 		return
 	}
 
