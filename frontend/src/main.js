@@ -9,7 +9,7 @@ Vue.prototype.$http.getProtected = function(...args) {
     return axios.get(...args)
         .catch((e) => {
             if (e.response.status === 401) {
-                this.$router.push('/');
+                router.push('/');
                 return;
             }
             throw e;
