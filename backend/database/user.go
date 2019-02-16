@@ -22,7 +22,7 @@ func (h *userHandler) GetUserFromSession(sessionId string) (models.User, error) 
 }
 
 func (h *userHandler) GetUserFromId(id string) (models.User, error) {
-	return h.getUser("id = $1", id)
+	return h.getUser("Users.id = $1", id)
 }
 
 func (h *userHandler) getUser(whereCondition string, whereArgs ...interface{}) (models.User, error) {

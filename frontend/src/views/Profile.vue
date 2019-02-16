@@ -36,7 +36,7 @@ export default {
         },
     },
     created() {
-        this.$http.get(`/api/user/${this.username}`)
+        this.$http.get(`/api/users/exact/${this.username}`)
             .then((response) => {
                 console.log('Setting user');
                 this.user = response.data;

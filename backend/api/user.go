@@ -43,7 +43,7 @@ func (a *userApi) UserGet(w http.ResponseWriter, r *http.Request) {
 
 	id, ok := vars["id"]
 	if !ok {
-		http.Error(w, "Must provide a username", http.StatusBadRequest)
+		http.Error(w, "Must provide an id", http.StatusBadRequest)
 		return
 	}
 
@@ -259,4 +259,28 @@ func (a *userApi) UsersSearchGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(users)
+}
+
+func (a *userApi) UsersExactGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	username, ok := vars["username"]
+	if !ok {
+		http.Error(w, "Must provide a username", http.StatusBadRequest)
+		return
+	}
+
+	u, err := a.db.GetUserFromUsername(username)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(models.User{
+		Id:             u.Id,
+		Identification: models.Identification{Username: u.Username},
+		Email:          u.Email,
+	})
 }
