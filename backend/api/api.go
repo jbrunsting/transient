@@ -24,6 +24,7 @@ type Api interface {
 	FollowingsGet(w http.ResponseWriter, r *http.Request)
 	FollowingPost(w http.ResponseWriter, r *http.Request)
 	FollowingDelete(w http.ResponseWriter, r *http.Request)
+	FollowingsPostsGet(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {

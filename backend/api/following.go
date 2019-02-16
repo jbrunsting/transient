@@ -98,3 +98,27 @@ func (a *followingApi) FollowingDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *followingApi) FollowingsPostsGet(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusForbidden)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	posts, err := a.db.GetFollowingsPosts(u.Id)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(posts)
+}

@@ -106,3 +106,45 @@ func (h *postHandler) DeletePost(postId string) error {
 
 	return nil
 }
+
+func (h *postHandler) GetFollowingsPosts(id string) ([]models.Post, error) {
+	posts := []models.Post{}
+
+	rows, err := h.db.Query(`
+	SELECT Posts.id, postId, time, title, content, postUrl, imageUrl FROM Posts
+	INNER JOIN Followings on Followings.followingId = Posts.id
+	WHERE Followings.id = $1
+	ORDER BY time DESC`, id)
+	if err != nil {
+		return posts, formatError(err, "post", "getting posts")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post models.Post
+		var content sql.NullString
+		var postUrl sql.NullString
+		var imageUrl sql.NullString
+		if err = rows.Scan(&post.Id, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl); err != nil {
+			break
+		}
+
+		post.Content = content.String
+		post.PostUrl = postUrl.String
+		post.ImageUrl = imageUrl.String
+		posts = append(posts, post)
+	}
+
+	if rows.Err() != nil {
+		err = rows.Err()
+	}
+
+	if err != nil {
+		return posts, &UnexpectedError{
+			Action:        "parsing user",
+			InternalError: err.Error(),
+		}
+	}
+
+	return posts, nil
+}

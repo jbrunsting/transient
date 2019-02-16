@@ -21,6 +21,7 @@ type DatabaseHandler interface {
 	GetPost(postId string) (models.Post, error)
 	CreatePost(p models.Post) error
 	DeletePost(postId string) error
+	GetFollowingsPosts(id string) ([]models.Post, error)
 
 	CreateFollowing(id, followingId string) error
 	GetFollowings(id string) ([]models.User, error)

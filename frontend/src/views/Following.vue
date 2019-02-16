@@ -35,9 +35,7 @@ export default {
         updateFollowings() {
             this.$http.getProtected('/api/followings')
                 .then((response) => {
-                    console.log("GOT response")
                     this.followings = response.data;
-                    console.log("Folloowings are " + this.followings)
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });

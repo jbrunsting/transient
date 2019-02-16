@@ -7,7 +7,7 @@
     <ul>
       <li v-for="user in users" :key="user.id">
         <h3>{{ user.username }}</h3>
-        <template v-if="followings.includes(user.id)">
+        <template v-if="followings.map(u => u.id).includes(user.id)">
           <form @submit.prevent="() => unfollow(user.id)">
             <button type="submit">Unfollow</button>
           </form>
