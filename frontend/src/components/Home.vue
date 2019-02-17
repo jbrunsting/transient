@@ -3,6 +3,7 @@
     <h1>Welcome to your home feed {{ username }}</h1>
     <ul>
       <li v-for="post in posts" :key="post.postId">
+        <p>{{ post.username }}</p>
         <Post :post="post"/>
       </li>
     </ul>

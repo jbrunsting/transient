@@ -25,8 +25,10 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 	posts := []models.Post{}
 
 	rows, err := h.db.Query(`
-	SELECT id, postId, time, title, content, postUrl, imageUrl
-	FROM Posts WHERE id = $1 ORDER BY time DESC`, id)
+	SELECT Posts.id, Users.username, postId, time, title, content, postUrl, imageUrl
+	FROM Posts
+	INNER JOIN Users on Users.id = Posts.id
+    WHERE Posts.id = $1 ORDER BY time DESC`, id)
 	if err != nil {
 		return posts, formatError(err, "post", "getting posts")
 	}
@@ -37,7 +39,7 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 		var content sql.NullString
 		var postUrl sql.NullString
 		var imageUrl sql.NullString
-		if err = rows.Scan(&post.Id, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl); err != nil {
+		if err = rows.Scan(&post.Id, &post.Username, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl); err != nil {
 			break
 		}
 
@@ -65,8 +67,11 @@ func (h *postHandler) GetPost(postId string) (models.Post, error) {
 	var post models.Post
 
 	rows, err := h.db.Query(`
-	SELECT id, postId, time, title, content, postUrl, imageUrl
-	FROM Posts WHERE postId = $1`, postId)
+	SELECT Posts.id, Users.username, postId, time, title, content, postUrl, imageUrl
+	FROM Posts
+	INNER JOIN Users ON Users.id = Posts.id
+    WHERE postId = $1
+    `, postId)
 	if err != nil {
 		return post, formatError(err, "post", "retrieving post")
 	}
@@ -76,7 +81,7 @@ func (h *postHandler) GetPost(postId string) (models.Post, error) {
 		var content sql.NullString
 		var postUrl sql.NullString
 		var imageUrl sql.NullString
-		err = rows.Scan(&post.Id, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl)
+		err = rows.Scan(&post.Id, &post.Username, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl)
 		post.Content = content.String
 		post.PostUrl = postUrl.String
 		post.ImageUrl = imageUrl.String
@@ -111,8 +116,9 @@ func (h *postHandler) GetFollowingsPosts(id string) ([]models.Post, error) {
 	posts := []models.Post{}
 
 	rows, err := h.db.Query(`
-	SELECT Posts.id, postId, time, title, content, postUrl, imageUrl FROM Posts
+	SELECT Posts.id, Users.username, postId, time, title, content, postUrl, imageUrl FROM Posts
 	INNER JOIN Followings on Followings.followingId = Posts.id
+	INNER JOIN Users on Users.id = Posts.id
 	WHERE Followings.id = $1
 	ORDER BY time DESC`, id)
 	if err != nil {
@@ -125,7 +131,7 @@ func (h *postHandler) GetFollowingsPosts(id string) ([]models.Post, error) {
 		var content sql.NullString
 		var postUrl sql.NullString
 		var imageUrl sql.NullString
-		if err = rows.Scan(&post.Id, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl); err != nil {
+		if err = rows.Scan(&post.Id, &post.Username, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl); err != nil {
 			break
 		}
 
