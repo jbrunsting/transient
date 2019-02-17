@@ -21,3 +21,8 @@ type User struct {
 	Email    string    `json:"email"`
 	Sessions []Session `json:"sessions,omitempty"`
 }
+
+type PasswordChange struct {
+	Password    string `json:"password"`
+	NewPassword string `json:"newPassword"`
+}

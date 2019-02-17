@@ -215,6 +215,51 @@ func (a *userApi) UserDeletePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (a *userApi) UserPasswordPost(w http.ResponseWriter, r *http.Request) {
+	var change models.PasswordChange
+	err := json.NewDecoder(r.Body).Decode(&change)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusBadRequest)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		if _, ok := err.(*database.NotFoundError); ok {
+			http.Error(w, "Password does not match", http.StatusUnauthorized)
+			return
+		}
+		handleDbErr(err, w)
+		return
+	}
+
+	if !passwordMatches(u.Password, change.Password) {
+		http.Error(w, "Password does not match", http.StatusUnauthorized)
+		return
+	}
+
+	password, err := hashPassword(change.NewPassword)
+	if err != nil {
+		log.Printf("Error hashing password: %v\n", err.Error())
+		http.Error(w, "Error hashing password", http.StatusInternalServerError)
+		return
+	}
+
+	if err = a.db.ChangePassword(u.Id, password); err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
 func (a *userApi) UserAuthenticatedGet(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := getSessionId(r)
 	if err != nil {

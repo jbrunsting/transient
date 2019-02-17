@@ -5,12 +5,14 @@
       <form id="invalidate" @submit.prevent="invalidateSessions">
         <button type="submit">Logout of all other sessions</button>
       </form>
+      <ChangePassword />
       <Login submitText="Delete account" apiPath="/api/user/delete" v-on:login="updateAuth()"/>
     </div>
   </div>
 </template>
 <script>
 import Nav from '@/components/Nav.vue';
+import ChangePassword from '@/components/ChangePassword.vue';
 import Login from '@/components/Login.vue';
 
 export default {
@@ -20,6 +22,7 @@ export default {
     },
     components: {
         Nav,
+        ChangePassword,
         Login,
     },
     data() {
@@ -57,6 +60,10 @@ export default {
 }
 
 .login {
-  display: inline-block;
+  display: block;
+}
+
+.changepassword {
+  display: block;
 }
 </style>

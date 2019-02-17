@@ -3,7 +3,7 @@
     <a v-if="post.postUrl" :href="post.postUrl"><h3>{{ post.title }}</h3></a>
     <h3 v-else>{{ post.title }}</h3>
     <p>{{ post.content }}</p>
-    <p>{{ new Date(post.time).toLocaleString() }}</p>
+    <p>{{ date }}</p>
     <form v-if="showControls" @submit.prevent="deletePost">
       <button type="submit">Delete</button>
     </form>
@@ -17,6 +17,11 @@ export default {
         post: Object,
         showControls: { type: Boolean, default: false },
     },
+    data() {
+        return {
+            date: '',
+        };
+    },
     methods: {
         deletePost() {
             this.$http.delete(`/api/post/${this.post.postId}`, {})
@@ -27,6 +32,13 @@ export default {
                     console.log(`${JSON.stringify(e)}`);
                 });
         },
+    },
+    created() {
+        try {
+            this.date = new Date(this.post.time).toLocaleString();
+        } catch (e) {
+            console.log(e);
+        }
     },
 };
 </script>

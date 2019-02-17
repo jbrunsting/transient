@@ -15,6 +15,7 @@ type DatabaseHandler interface {
 	DeleteOtherSessions(currentSessionId string) error
 	DeleteSession(sessionId string) error
 	DeleteUser(id string) error
+	ChangePassword(id string, password string) error
 	SearchUsers(search string, limit int) ([]models.User, error)
 
 	GetPosts(id string) ([]models.Post, error)

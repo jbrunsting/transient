@@ -34,7 +34,6 @@ export default {
         getPosts() {
             this.$http.get('/api/followings/posts')
                 .then((response) => {
-                    console.log(this.posts);
                     this.posts = response.data;
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);

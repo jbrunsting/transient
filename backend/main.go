@@ -35,6 +35,7 @@ func main() {
 	r.HandleFunc("/user/logout", a.UserLogoutPost).Methods("POST")
 	r.HandleFunc("/user/invalidate", a.UserInvalidatePost).Methods("POST")
 	r.HandleFunc("/user/delete", a.UserDeletePost).Methods("POST")
+	r.HandleFunc("/user/password", a.UserPasswordPost).Methods("POST")
 	r.HandleFunc("/users/search", a.UsersSearchGet).Methods("GET")
     r.HandleFunc("/users/exact/{username}", a.UsersExactGet).Methods("GET")
 	r.HandleFunc("/authenticated", a.UserAuthenticatedGet).Methods("GET")

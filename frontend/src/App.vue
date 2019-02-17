@@ -8,6 +8,8 @@
 </template>
 
 <script>
+import router from './router'
+
 export default {
     data() {
         return {
@@ -24,6 +26,7 @@ export default {
                 }).catch(() => {
                     if (this.authenticated || this.authenticated == null) {
                         this.authenticated = false;
+                        router.push('/');
                     }
                 });
         },

@@ -15,6 +15,7 @@ type Api interface {
 	UserLogoutPost(w http.ResponseWriter, r *http.Request)
 	UserInvalidatePost(w http.ResponseWriter, r *http.Request)
 	UserDeletePost(w http.ResponseWriter, r *http.Request)
+	UserPasswordPost(w http.ResponseWriter, r *http.Request)
 	UsersSearchGet(w http.ResponseWriter, r *http.Request)
 	UsersExactGet(w http.ResponseWriter, r *http.Request)
 

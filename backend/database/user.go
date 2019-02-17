@@ -127,6 +127,12 @@ func (h *userHandler) DeleteOtherSessions(currentSessionId string) error {
 	return formatError(err, "session", "deleting other sessions")
 }
 
+func (h *userHandler) ChangePassword(id string, password string) error {
+	s := `UPDATE Users SET password = $2 WHERE id = $1`
+	_, err := h.db.Exec(s, id, password)
+	return formatError(err, "user", "updating password")
+}
+
 func (h *userHandler) SearchUsers(search string, limit int) ([]models.User, error) {
 	var users []models.User
 	usersMap := make(map[string]*models.User)
