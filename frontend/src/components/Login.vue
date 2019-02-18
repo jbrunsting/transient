@@ -97,7 +97,6 @@ button {
 
 form {
   display: flex;
-  align-items: center;
 }
 
 .error {

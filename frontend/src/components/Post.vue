@@ -1,10 +1,17 @@
 <template>
   <div class="post">
-    <a v-if="post.postUrl" :href="post.postUrl"><h3>{{ post.title }}</h3></a>
-    <h3 v-else>{{ post.title }}</h3>
-    <p>{{ post.content }}</p>
-    <p>{{ date }}</p>
-    <form v-if="showControls" @submit.prevent="deletePost">
+    <div class="header">
+      <h3 class="title" v-if="post.postUrl" >
+        <a :href="post.postUrl">{{ post.title }}</a>
+      </h3>
+      <h3 class="title" v-else>{{ post.title }}</h3>
+      <p class="date">{{ date }}</p>
+      <p class="username">
+        <a v-if="!profileView" :href="'/profile/' + post.username">{{ post.username }}</a>
+      </p>
+    </div>
+    <p class="content">{{ post.content }}</p>
+    <form v-if="profileView" @submit.prevent="deletePost">
       <button type="submit">Delete</button>
     </form>
   </div>
@@ -15,7 +22,7 @@ export default {
     name: 'post',
     props: {
         post: Object,
-        showControls: { type: Boolean, default: false },
+        profileView: { type: Boolean, default: false },
     },
     data() {
         return {
@@ -42,3 +49,38 @@ export default {
     },
 };
 </script>
+
+<style scoped lang="scss">
+@import "../styles/settings.scss";
+
+.username {
+  float: right;
+  padding: 0;
+  margin: 0;
+  margin: 0 0 0 $margin1;
+  font-size: $fontsize1;
+}
+
+.title {
+  display: inline-block;
+  padding: 0;
+  margin: 0 $margin1 0 0;
+  font-size: $fontsize2;
+}
+
+.date {
+  padding: 0;
+  margin: 0 $margin1 0 auto;
+  font-size: $fontsize1;
+}
+
+.header {
+  display: flex;
+  margin-bottom: $margin1;
+}
+
+.content {
+  padding: 0;
+  margin: $margin1 0 0 0;
+}
+</style>

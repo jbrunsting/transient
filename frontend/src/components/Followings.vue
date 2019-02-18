@@ -1,9 +1,8 @@
 <template>
   <div class="home">
-    <h1>Welcome {{ username }}</h1>
     <ul>
-      <li v-for="user in followings" :key="user.id">
-        <h3>{{ user.username }}</h3>
+      <li class="follow" v-for="user in followings" :key="user.id">
+        <p>{{ user.username }}</p>
         <form @submit.prevent="() => unfollow(user.id)">
           <button type="submit">Unfollow</button>
         </form>
@@ -36,3 +35,22 @@ export default {
     },
 };
 </script>
+
+<style scoped lang="scss">
+@import "../styles/settings.scss";
+
+.follow {
+  display: flex;
+}
+
+.follow p {
+  display: inline-block;
+  margin: $margin0;
+}
+
+.follow form {
+  display: inline-block;
+  margin: $margin0;
+  margin-left: auto;
+}
+</style>

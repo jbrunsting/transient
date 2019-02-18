@@ -96,4 +96,22 @@ a {
   background-color: $base0;
   border-radius: $margin0;
 }
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    padding: $margin1;
+    margin: 0;
+    border-width: 2px 0 0 0;
+    border-style: solid;
+    border-color: $base2;
+  }
+
+  li:first-child {
+    border-style: none;
+  }
+}
 </style>

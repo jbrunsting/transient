@@ -1,9 +1,7 @@
 <template>
   <div class="home">
-    <h1>Welcome to your home feed {{ username }}</h1>
     <ul>
       <li v-for="post in posts" :key="post.postId">
-        <a :href="'/profile/' + post.username"><p>{{ post.username }}</p></a>
         <Post :post="post"/>
       </li>
     </ul>

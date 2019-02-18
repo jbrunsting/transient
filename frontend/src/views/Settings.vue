@@ -58,12 +58,4 @@ export default {
 #invalidate {
   margin-bottom: $margin1;
 }
-
-.login {
-  display: block;
-}
-
-.changepassword {
-  display: block;
-}
 </style>

@@ -1,11 +1,9 @@
 <template>
   <div class="homeprofile">
-    <h1>Welcome {{ username }}</h1>
-    <p>{{ email }}</p>
     <CreatePost v-on:createPost="getPosts"/>
     <ul>
       <li v-for="post in posts" :key="post.postId">
-        <Post :post="post" :showControls="true"/>
+        <Post :post="post" :profileView="true"/>
       </li>
     </ul>
   </div>
