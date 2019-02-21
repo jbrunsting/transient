@@ -1,12 +1,14 @@
 <template>
   <div class="profile">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
-    <h1>{{ username }}</h1>
-    <ul>
-      <li v-for="post in posts" :key="post.postId">
-        <Post :post="post"/>
-      </li>
-    </ul>
+    <div class="content">
+      <h1>{{ username }}</h1>
+      <ul>
+        <li v-for="post in posts" :key="post.postId">
+          <Post :post="post"/>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 

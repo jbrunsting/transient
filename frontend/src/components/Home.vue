@@ -1,15 +1,11 @@
 <template>
   <div class="home">
-    <ul>
-      <li v-for="post in posts" :key="post.postId">
-        <Post :post="post"/>
-      </li>
-    </ul>
+    <FullscreenPost v-if="post" :post="post"/>
   </div>
 </template>
 
 <script>
-import Post from '@/components/Post.vue';
+import FullscreenPost from '@/components/FullscreenPost.vue';
 
 export default {
     name: 'home',
@@ -18,12 +14,13 @@ export default {
             id: '',
             username: '',
             email: '',
+            post: undefined,
             posts: [],
         };
     },
     props: { authenticated: Boolean },
     components: {
-        Post,
+        FullscreenPost,
     },
     methods: {
         updateAuth() {
@@ -33,6 +30,7 @@ export default {
             this.$http.get('/api/followings/posts')
                 .then((response) => {
                     this.posts = response.data;
+                    this.post = this.posts[0];
                 }).catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });
@@ -51,3 +49,18 @@ export default {
     },
 };
 </script>
+
+<style scoped lang="scss">
+@import "../styles/settings.scss";
+
+.home {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: $nav-height auto 0 auto;
+  max-width: $page-width;
+  z-index: -100;
+}
+</style>

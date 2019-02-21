@@ -1,10 +1,10 @@
 <template>
   <div class="home">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
-    <div class="content">
-      <Landing v-if="!authenticated" v-on:auth="updateAuth()"/>
-      <Home v-if="authenticated"/>
+    <div v-if="!authenticated" class="content">
+      <Landing v-on:auth="updateAuth()"/>
     </div>
+    <Home v-if="authenticated"/>
   </div>
 </template>
 
@@ -30,3 +30,9 @@ export default {
     },
 };
 </script>
+
+<style>
+.content {
+  margin-top: 0;
+}
+</style>

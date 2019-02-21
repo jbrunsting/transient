@@ -6,9 +6,6 @@
       </h3>
       <h3 class="title" v-else>{{ post.title }}</h3>
       <p class="date">{{ date }}</p>
-      <p class="username">
-        <a v-if="!profileView" :href="'/profile/' + post.username">{{ post.username }}</a>
-      </p>
     </div>
     <p class="content">{{ post.content }}</p>
     <form v-if="profileView" @submit.prevent="deletePost">
@@ -52,14 +49,6 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/settings.scss";
-
-.username {
-  float: right;
-  padding: 0;
-  margin: 0;
-  margin: 0 0 0 $margin1;
-  font-size: $fontsize1;
-}
 
 .title {
   display: inline-block;

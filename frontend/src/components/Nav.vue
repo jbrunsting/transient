@@ -40,6 +40,7 @@ export default {
 @import "../styles/settings.scss";
 
 .nav {
+  height: $nav-height - 2 * $margin1;
   display: flex;
   align-items: center;
   background: $accent1;
