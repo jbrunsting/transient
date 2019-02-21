@@ -45,8 +45,8 @@ export default {
                 });
         },
         startDrag(e) {
-            e = e || window.event;
             e.preventDefault();
+
             this.lastX = e.clientX;
             this.lastY = e.clientY;
             this.translation = 0;
@@ -55,32 +55,80 @@ export default {
             cur.onmousemove = this.doDrag;
             cur.onmouseup = this.endDrag;
             cur.onmouseleave = this.endDrag;
-            cur.style.transition = "";
+            cur.style.transition = '';
 
             const next = this.$refs.nextPost;
-            next.style.opacity = 0;
+            if (next) {
+                next.style.opacity = 0;
+            }
         },
         doDrag(e) {
-            e = e || window.event;
             e.preventDefault();
+
             const dx = this.lastX - e.clientX;
-            const dy = this.lastY - e.clientY;
             this.lastX = e.clientX;
             this.lastY = e.clientY;
             this.translation -= dx;
 
             const cur = this.$refs.curPost;
-            cur.style.transform = "translate(" + this.translation + "px, 0)";
+            cur.style.transition = '';
+            cur.style.transform = `translate(${this.translation}px, 0)`;
 
             const next = this.$refs.nextPost;
-            next.style.opacity = Math.abs(this.translation / this.acceptX);
+            if (next) {
+                next.style.transition = '';
+                next.style.opacity = Math.abs(this.translation / (this.acceptX + 200));
+            }
+
+            if (Math.abs(this.translation) > this.acceptX) {
+                this.nextPost();
+            }
         },
         endDrag(e) {
             e.preventDefault();
-            const post = this.$refs.curPost;
-            post.onmousemove = undefined;
-            post.style.transform = "translate(0,0)";
-            post.style.transition = "100ms ease-in-out";
+
+            this.resetHandlers();
+
+            const cur = this.$refs.curPost;
+            cur.style.transition = '100ms ease-in-out';
+            cur.style.transform = 'translate(0,0)';
+
+            const next = this.$refs.nextPost;
+            if (next) {
+                next.style.transition = '100ms ease-in-out';
+                next.style.opacity = 0;
+            }
+        },
+        nextPost() {
+            this.resetHandlers();
+
+            const cur = this.$refs.curPost;
+            cur.style.transition = '500ms ease-out';
+            if (this.translation > 0) {
+                cur.style.transform = `translate(${this.acceptX + 200}px,0)`;
+            } else {
+                cur.style.transform = `translate(-${this.acceptX + 200}px,0)`;
+            }
+            cur.style.opacity = 0;
+
+            const next = this.$refs.nextPost;
+            if (next) {
+                next.style.transition = '500ms ease-out';
+                next.style.opacity = 1;
+            }
+
+            setTimeout(() => {
+                this.posts.shift();
+                cur.style.transform = '';
+                cur.style.transition = '';
+                cur.style.opacity = 1;
+            }, 500);
+        },
+        resetHandlers() {
+            const cur = this.$refs.curPost;
+            cur.onmousemove = undefined;
+            cur.onmouseup = undefined;
+            cur.onmouseleave = undefined;
         },
     },
     created() {
