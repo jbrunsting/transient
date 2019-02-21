@@ -1,5 +1,5 @@
 <template>
-  <div ref="post" class="post" v-on:mousedown="startDrag">
+  <div class="post">
     <div class="header">
       <h3 class="title" v-if="post.postUrl" >
         <a :href="post.postUrl">{{ post.title }}</a>
@@ -23,9 +23,6 @@ export default {
     data() {
         return {
             date: '',
-            lastX: 0,
-            lastY: 0,
-            translation: 0,
         };
     },
     methods: {
@@ -37,30 +34,6 @@ export default {
                 .catch((e) => {
                     console.log(`${JSON.stringify(e)}`);
                 });
-        },
-        startDrag(e) {
-            e = e || window.event;
-            e.preventDefault();
-            this.lastX = e.clientX;
-            this.lastY = e.clientY;
-            this.translation = 0;
-            const post = this.$refs.post
-            post.onmousemove = this.doDrag
-            post.onmouseup = function() {
-                post.onmousemove = undefined
-                post.style.transform = "translate(0,0)"
-            }
-        },
-        doDrag(e) {
-            e = e || window.event;
-            e.preventDefault();
-            const dx = this.lastX - e.clientX;
-            const dy = this.lastY - e.clientY;
-            this.lastX = e.clientX;
-            this.lastY = e.clientY;
-            this.translation -= dx;
-            const post = this.$refs.post
-            post.style.transform = "translate(" + this.translation + "px, 0)"
         },
     },
     created() {
@@ -77,10 +50,15 @@ export default {
 @import "../styles/settings.scss";
 
 .post {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
   background-color: $base0;
-  margin: $margin2;
+  margin: $margin2 auto;
   padding: $margin2;
   border-radius: $margin2;
+  max-width: 600px;
 }
 
 .username {
