@@ -1,11 +1,22 @@
 <template>
   <div class="home">
     <div class="postWrapper">
-      <div v-if="posts[1]" ref="nextPost">
-        <FullscreenPost :post="posts[1]"/>
+      <div v-if="posts[1]"
+           ref="nextPost">
+        <FullscreenPost :post="posts[1]"
+           :translation="nextTranslation"
+           :alpha="nextAlpha"
+           :transition="nextTransition"/>
       </div>
-      <div v-if="posts[0]" ref="curPost" v-on:mousedown="startDrag">
-        <FullscreenPost :post="posts[0]"/>
+      <div v-if="posts[0]"
+           ref="curPost"
+           v-on:mousedown="startDrag">
+        <FullscreenPost
+           :post="posts[0]"
+           :translation="curTranslation"
+           :alpha="curAlpha"
+           :color="curColor"
+           :transition="curTransition"/>
       </div>
     </div>
   </div>
@@ -23,9 +34,14 @@ export default {
             email: '',
             posts: [],
             lastX: 0,
-            lastY: 0,
-            translation: 0,
             acceptX: 200,
+            curTranslation: 0,
+            curAlpha: 1,
+            curTransition: '',
+            curColor: 'white',
+            nextTranslation: 0,
+            nextAlpha: 1,
+            nextTransition: '',
         };
     },
     props: { authenticated: Boolean },
@@ -48,39 +64,28 @@ export default {
             e.preventDefault();
 
             this.lastX = e.clientX;
-            this.lastY = e.clientY;
-            this.translation = 0;
 
             const cur = this.$refs.curPost;
             cur.onmousemove = this.doDrag;
             cur.onmouseup = this.endDrag;
             cur.onmouseleave = this.endDrag;
-            cur.style.transition = '';
 
-            const next = this.$refs.nextPost;
-            if (next) {
-                next.style.opacity = 0;
-            }
+            this.curTranslation = 0;
+            this.nextAlpha = 0;
         },
         doDrag(e) {
             e.preventDefault();
 
+            this.curTransition = '';
+            this.nextTransition = '';
+
             const dx = this.lastX - e.clientX;
             this.lastX = e.clientX;
-            this.lastY = e.clientY;
-            this.translation -= dx;
 
-            const cur = this.$refs.curPost;
-            cur.style.transition = '';
-            cur.style.transform = `translate(${this.translation}px, 0)`;
+            this.curTranslation -= dx;
+            this.nextAlpha = Math.abs(this.curTranslation / (this.acceptX + 200));
 
-            const next = this.$refs.nextPost;
-            if (next) {
-                next.style.transition = '';
-                next.style.opacity = Math.abs(this.translation / (this.acceptX + 200));
-            }
-
-            if (Math.abs(this.translation) > this.acceptX) {
+            if (Math.abs(this.curTranslation) > this.acceptX) {
                 this.nextPost();
             }
         },
@@ -89,39 +94,37 @@ export default {
 
             this.resetHandlers();
 
-            const cur = this.$refs.curPost;
-            cur.style.transition = '100ms ease-in-out';
-            cur.style.transform = 'translate(0,0)';
+            this.curTransition = '100ms ease-in-out';
+            this.nextTransition = '100ms ease-in-out';
 
-            const next = this.$refs.nextPost;
-            if (next) {
-                next.style.transition = '100ms ease-in-out';
-                next.style.opacity = 0;
-            }
+            this.curTranslation = 0;
+            this.nextAlpha = 0;
         },
         nextPost() {
             this.resetHandlers();
 
-            const cur = this.$refs.curPost;
-            cur.style.transition = '500ms ease-out';
-            if (this.translation > 0) {
-                cur.style.transform = `translate(${this.acceptX + 200}px,0)`;
-            } else {
-                cur.style.transform = `translate(-${this.acceptX + 200}px,0)`;
-            }
-            cur.style.opacity = 0;
+            this.curTransition = '500ms ease-out';
+            this.nextTransition = '500ms ease-out';
 
-            const next = this.$refs.nextPost;
-            if (next) {
-                next.style.transition = '500ms ease-out';
-                next.style.opacity = 1;
+            let target = 0;
+            if (this.curTranslation > 0) {
+                target = this.acceptX + 300;
+                this.curColor = '#40E040';
+            } else {
+                target = - this.acceptX - 300;
+                this.curColor = '#FF4040';
             }
+            this.curTranslation = target;
+            this.curAlpha = 0;
+            this.nextAlpha = 1;
 
             setTimeout(() => {
+                this.curTransition = '';
+                this.nextTransition = '';
                 this.posts.shift();
-                cur.style.transform = '';
-                cur.style.transition = '';
-                cur.style.opacity = 1;
+                this.curTranslation = 0;
+                this.curAlpha = 1;
+                this.curColor = '';
             }, 500);
         },
         resetHandlers() {

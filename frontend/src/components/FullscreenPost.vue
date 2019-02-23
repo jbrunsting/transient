@@ -1,5 +1,5 @@
 <template>
-  <div class="post">
+  <div ref="post" class="post">
     <div class="header">
       <h3 class="title" v-if="post.postUrl" >
         <a :href="post.postUrl">{{ post.title }}</a>
@@ -19,6 +19,10 @@ export default {
     name: 'post',
     props: {
         post: Object,
+        translation: Number,
+        alpha: Number,
+        color: String,
+        transition: String,
     },
     data() {
         return {
@@ -42,6 +46,20 @@ export default {
         } catch (e) {
             console.log(e);
         }
+    },
+    watch: {
+        translation() {
+            this.$refs.post.style.transform = `translate(${this.translation}px, 0)`;
+        },
+        alpha() {
+            this.$refs.post.style.opacity = this.alpha;
+        },
+        color() {
+            this.$refs.post.style.backgroundColor = this.color;
+        },
+        transition() {
+            this.$refs.post.style.transition = this.transition;
+        },
     },
 };
 </script>
