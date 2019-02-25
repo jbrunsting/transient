@@ -52,6 +52,7 @@ export default {
                 .then(() => {
                     this.password = '';
                     this.newPassword = '';
+                    alert('Successfully changed your password'); // eslint-disable-line no-alert
                 })
                 .catch((e) => {
                     if (e.response.status === 401) {

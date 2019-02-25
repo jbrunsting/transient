@@ -108,5 +108,6 @@ export default {
 .body {
   padding: 0;
   margin: $margin1 0 0 0;
+  white-space: pre-line;
 }
 </style>

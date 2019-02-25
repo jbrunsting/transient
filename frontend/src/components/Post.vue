@@ -7,8 +7,8 @@
       <h3 class="title" v-else>{{ post.title }}</h3>
       <p class="date">{{ date }}</p>
     </div>
-    <p class="content">{{ post.content }}</p>
-    <form v-if="profileView" @submit.prevent="deletePost">
+    <p class="body">{{ post.content }}</p>
+    <form class="delete" v-if="profileView" @submit.prevent="deletePost">
       <button type="submit">Delete</button>
     </form>
   </div>
@@ -68,8 +68,13 @@ export default {
   margin-bottom: $margin1;
 }
 
-.content {
-  padding: 0;
+.delete {
   margin: $margin1 0 0 0;
+}
+
+.body {
+  white-space: pre-line;
+  padding: 0;
+  margin: 0;
 }
 </style>

@@ -111,7 +111,7 @@ export default {
                 target = this.acceptX + 300;
                 this.curColor = '#40E040';
             } else {
-                target = - this.acceptX - 300;
+                target = -this.acceptX - 300;
                 this.curColor = '#FF4040';
             }
             this.curTranslation = target;
@@ -125,6 +125,7 @@ export default {
                 this.curTranslation = 0;
                 this.curAlpha = 1;
                 this.curColor = '';
+                this.nextAlpha = 0;
             }, 500);
         },
         resetHandlers() {
@@ -152,7 +153,6 @@ export default {
 @import "../styles/settings.scss";
 
 .home {
-  overflow: hidden;
   position: absolute;
   top: 0;
   left: 0;
@@ -160,6 +160,7 @@ export default {
   right: 0;
   margin-top: $nav-height;
   z-index: -100;
+  overflow-x: hidden;
 }
 
 .topPost {
