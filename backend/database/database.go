@@ -23,6 +23,7 @@ type DatabaseHandler interface {
 	CreatePost(p models.Post) error
 	DeletePost(postId string) error
 	GetFollowingsPosts(id string) ([]models.Post, error)
+	CreateVote(id string, postId string, vote int) error
 
 	CreateFollowing(id, followingId string) error
 	GetFollowings(id string) ([]models.User, error)

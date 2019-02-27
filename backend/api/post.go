@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -100,22 +101,64 @@ func (a *postApi) PostDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	post, err := a.db.GetPost(postId)
-    if err != nil {
-        handleDbErr(err, w)
-        return
-    }
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
 
 	if post.Id != u.Id {
 		http.Error(w, "Currently logged in user is not the owner of the post", http.StatusUnauthorized)
 		return
 	}
 
-    err = a.db.DeletePost(postId)
+	err = a.db.DeletePost(postId)
 	if err != nil {
 		handleDbErr(err, w)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *postApi) PostVotePost(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	postId, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide a post ID to vote on", http.StatusBadRequest)
+		return
+	}
+
+	var v models.Vote
+	err = json.NewDecoder(r.Body).Decode(&v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if v.Vote != models.UPVOTE && v.Vote != models.DOWNVOTE {
+		http.Error(w, fmt.Sprintf("Vote must be %v or %v", models.UPVOTE, models.DOWNVOTE), http.StatusBadRequest)
+		return
+	}
+
+	err = a.db.CreateVote(u.Id, postId, v.Vote)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }

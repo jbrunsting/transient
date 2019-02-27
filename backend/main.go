@@ -39,9 +39,11 @@ func main() {
 	r.HandleFunc("/users/search", a.UsersSearchGet).Methods("GET")
     r.HandleFunc("/users/exact/{username}", a.UsersExactGet).Methods("GET")
 	r.HandleFunc("/authenticated", a.UserAuthenticatedGet).Methods("GET")
+
 	r.HandleFunc("/posts/{id}", a.PostsGet).Methods("GET")
 	r.HandleFunc("/post", a.PostPost).Methods("POST")
 	r.HandleFunc("/post/{id}", a.PostDelete).Methods("DELETE")
+	r.HandleFunc("/post/vote/{id}", a.PostVotePost).Methods("POST")
 
 	r.HandleFunc("/followings", a.FollowingsGet).Methods("GET")
 	r.HandleFunc("/followings/posts", a.FollowingsPostsGet).Methods("GET")

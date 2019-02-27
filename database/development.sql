@@ -28,3 +28,11 @@ CREATE TABLE IF NOT EXISTS Posts (
     postUrl TEXT,
     imageUrl TEXT
 );
+
+CREATE TABLE IF NOT EXISTS Votes (
+    id VARCHAR(36) NOT NULL REFERENCES Users(id) ON DELETE CASCADE,
+    postId VARCHAR(36) NOT NULL REFERENCES Posts(postId),
+    time TIMESTAMP NOT NULL,
+    vote INTEGER NOT NULL,
+    PRIMARY KEY(id, postId)
+);

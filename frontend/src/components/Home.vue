@@ -25,6 +25,11 @@
 <script>
 import FullscreenPost from '@/components/FullscreenPost.vue';
 
+const ACCEPT_X = 200;
+const VOTE_OFFSET = 300;
+const UPVOTE = 1;
+const DOWNVOTE = -1;
+
 export default {
     name: 'home',
     data() {
@@ -34,7 +39,6 @@ export default {
             email: '',
             posts: [],
             lastX: 0,
-            acceptX: 200,
             curTranslation: 0,
             curAlpha: 1,
             curTransition: '',
@@ -83,9 +87,9 @@ export default {
             this.lastX = e.clientX;
 
             this.curTranslation -= dx;
-            this.nextAlpha = Math.abs(this.curTranslation / (this.acceptX + 200));
+            this.nextAlpha = Math.abs(this.curTranslation / (ACCEPT_X + 200));
 
-            if (Math.abs(this.curTranslation) > this.acceptX) {
+            if (Math.abs(this.curTranslation) > ACCEPT_X) {
                 this.nextPost();
             }
         },
@@ -108,11 +112,13 @@ export default {
 
             let target = 0;
             if (this.curTranslation > 0) {
-                target = this.acceptX + 300;
+                target = ACCEPT_X + VOTE_OFFSET;
                 this.curColor = '#40E040';
+                this.castVote(this.posts[0].postId, UPVOTE);
             } else {
-                target = -this.acceptX - 300;
+                target = -ACCEPT_X - VOTE_OFFSET;
                 this.curColor = '#FF4040';
+                this.castVote(this.posts[0].postId, DOWNVOTE);
             }
             this.curTranslation = target;
             this.curAlpha = 0;
@@ -133,6 +139,12 @@ export default {
             cur.onmousemove = undefined;
             cur.onmouseup = undefined;
             cur.onmouseleave = undefined;
+        },
+        castVote(postId, vote) {
+            this.$http.post(`/api/post/vote/${postId}`, { vote })
+                .catch((e) => {
+                    console.log(`Error ${JSON.stringify(e)}`);
+                });
         },
     },
     created() {
