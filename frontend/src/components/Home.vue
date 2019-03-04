@@ -44,7 +44,7 @@ export default {
             curTransition: '',
             curColor: 'white',
             nextTranslation: 0,
-            nextAlpha: 1,
+            nextAlpha: 0,
             nextTransition: '',
         };
     },
@@ -65,8 +65,6 @@ export default {
                 });
         },
         startDrag(e) {
-            e.preventDefault();
-
             this.lastX = e.clientX;
 
             const cur = this.$refs.curPost;
@@ -78,8 +76,6 @@ export default {
             this.nextAlpha = 0;
         },
         doDrag(e) {
-            e.preventDefault();
-
             this.curTransition = '';
             this.nextTransition = '';
 
@@ -94,8 +90,6 @@ export default {
             }
         },
         endDrag(e) {
-            e.preventDefault();
-
             this.resetHandlers();
 
             this.curTransition = '100ms ease-in-out';

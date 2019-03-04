@@ -61,3 +61,10 @@ export default {
     },
 };
 </script>
+<style scoped lang="scss">
+@import "../styles/settings.scss";
+
+h1 {
+  margin: 0;
+}
+</style>
