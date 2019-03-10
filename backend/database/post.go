@@ -166,3 +166,14 @@ func (h *postHandler) CreateVote(id string, postId string, vote int) error {
 
 	return nil
 }
+
+func (h *postHandler) CreateComment(postId string, p models.Comment) error {
+	_, err := h.db.Exec(`
+	INSERT INTO Comments (id, postId, commentId, time, content)
+    VALUES ($1, $2, $3, $4, $5)`, p.Id, postId, p.CommentId, p.Time, p.Content)
+	if err != nil {
+		return formatError(err, "vote", "creating vote")
+	}
+
+	return nil
+}

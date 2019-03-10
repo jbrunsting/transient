@@ -27,7 +27,7 @@ export default {
         Error,
     },
     methods: {
-        createComment() {
+        createComment(postId) {
             /* eslint-disable no-param-reassign */
             this.$el.querySelectorAll('.error').forEach((c) => {
                 c.style.display = 'none';
@@ -37,7 +37,7 @@ export default {
                 content: this.content,
             };
 
-            this.$http.post('/api/post/id/comment', comment)
+            this.$http.post(`/api/post/${this.postId}/comment`, comment)
                 .then(() => {
                     this.content = '';
                     this.$emit('createComment');

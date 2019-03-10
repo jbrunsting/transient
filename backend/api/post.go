@@ -162,3 +162,52 @@ func (a *postApi) PostVotePost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *postApi) PostCommentPost(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	vars := mux.Vars(r)
+
+	postId, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide a post ID to comment on", http.StatusBadRequest)
+		return
+	}
+
+	var c models.Comment
+	err = json.NewDecoder(r.Body).Decode(&c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+    c.Id = u.Id
+
+	id, err := uuid.NewV4()
+	if err != nil {
+		log.Printf("Error generating UUID: %v\n", err.Error())
+		http.Error(w, "Error generating UUID", http.StatusInternalServerError)
+		return
+	}
+	c.CommentId = id.String()
+
+	c.Time = time.Now()
+
+	err = a.db.CreateComment(postId, c)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}

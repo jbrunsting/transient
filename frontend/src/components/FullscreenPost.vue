@@ -13,7 +13,7 @@
       </div>
       <p class="body">{{ post.content }}</p>
     </div>
-    <Comments :postId="post.id" />
+    <Comments :postId="post.postId" />
   </div>
 </template>
 
