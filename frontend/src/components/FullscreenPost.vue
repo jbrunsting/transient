@@ -13,7 +13,7 @@
       </div>
       <p class="body">{{ post.content }}</p>
     </div>
-    <Comments :postId="post.postId" />
+    <Comments :postId="post.postId" :comments="this.comments" />
   </div>
 </template>
 
@@ -24,6 +24,7 @@ export default {
     name: 'post',
     props: {
         post: Object,
+        comments: Array,
         translation: Number,
         alpha: Number,
         color: String,

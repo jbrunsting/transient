@@ -24,6 +24,7 @@ type Api interface {
 	PostDelete(w http.ResponseWriter, r *http.Request)
 	PostVotePost(w http.ResponseWriter, r *http.Request)
 	PostCommentPost(w http.ResponseWriter, r *http.Request)
+	PostCommentsGet(w http.ResponseWriter, r *http.Request)
 
 	FollowingsGet(w http.ResponseWriter, r *http.Request)
 	FollowingPost(w http.ResponseWriter, r *http.Request)

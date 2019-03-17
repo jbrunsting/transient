@@ -13,6 +13,7 @@
            v-on:mousedown="startDrag">
         <FullscreenPost
            :post="posts[0]"
+           :comments="comments"
            :translation="curTranslation"
            :alpha="curAlpha"
            :color="curColor"
@@ -38,6 +39,7 @@ export default {
             username: '',
             email: '',
             posts: [],
+            comments: [],
             lastX: 0,
             curTranslation: 0,
             curAlpha: 1,
@@ -60,7 +62,25 @@ export default {
             this.$http.get('/api/followings/posts')
                 .then((response) => {
                     this.posts = response.data;
+                    this.getComments();
                 }).catch((e) => {
+                    console.log(`Error ${JSON.stringify(e)}`);
+                });
+        },
+        getComments() {
+            if (this.posts.length == 0) {
+                return;
+            }
+
+            this.comments = []
+            const postId = this.posts[0].postId;
+            this.$http.get(`api/post/${postId}/comments`)
+                .then((response) => {
+                    if (postId == this.posts[0].postId) {
+                        this.comments = response.data;
+                    }
+                })
+                .catch((e) => {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });
         },
@@ -126,6 +146,7 @@ export default {
                 this.curAlpha = 1;
                 this.curColor = '';
                 this.nextAlpha = 0;
+                this.getComments();
             }, 500);
         },
         resetHandlers() {

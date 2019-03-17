@@ -13,11 +13,11 @@ type Post struct {
 	Content  string    `json:"content"`
 	PostUrl  string    `json:"postUrl"`
 	ImageUrl string    `json:"imageUrl"`
-	Comments []Comment `json:"comments"`
 }
 
 type Comment struct {
 	Id       string     `json:"id"`
+	PostId   string    `json:"postId"`
 	CommentId string    `json:"commentId"`
 	Time      time.Time `json:"time"`
 	Content   string    `json:"content"`

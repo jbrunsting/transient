@@ -1,26 +1,29 @@
 <template>
   <div class="comments">
     <CreateComment :postId="postId" />
+    <div class="content">
+      <ul>
+        <li v-for="comment in comments" :key="comment.commentId">
+          <Comment :comment="comment" />
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script>
 import CreateComment from '@/components/CreateComment.vue';
+import Comment from '@/components/Comment.vue';
 
 export default {
     name: 'comments',
     props: {
         postId: String,
-        comments: Object,
-        profileView: { type: Boolean, default: false },
+        comments: Array
     },
     components: {
         CreateComment,
-    },
-    data() {
-        return {
-            date: '',
-        };
+        Comment,
     },
 };
 </script>

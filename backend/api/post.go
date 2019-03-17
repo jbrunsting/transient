@@ -211,3 +211,23 @@ func (a *postApi) PostCommentPost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *postApi) PostCommentsGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	id, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide a post ID to get the posts for", http.StatusBadRequest)
+		return
+	}
+
+	comments, err := a.db.GetComments(id)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(comments)
+}

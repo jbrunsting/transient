@@ -148,7 +148,7 @@ func (h *postHandler) GetFollowingsPosts(id string) ([]models.Post, error) {
 
 	if err != nil {
 		return posts, &UnexpectedError{
-			Action:        "parsing user",
+			Action:        "parsing posts",
 			InternalError: err.Error(),
 		}
 	}
@@ -176,4 +176,40 @@ func (h *postHandler) CreateComment(postId string, p models.Comment) error {
 	}
 
 	return nil
+}
+
+func (h *postHandler) GetComments(postId string) ([]models.Comment, error) {
+	comments := []models.Comment{}
+
+	rows, err := h.db.Query(`
+	SELECT id, commentId, time, content
+	FROM Comments WHERE postId = $1
+	ORDER BY time DESC`, postId)
+	if err != nil {
+		return comments, formatError(err, "comments", "getting comments")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var comment models.Comment
+		if err = rows.Scan(&comment.Id, &comment.CommentId, &comment.Time, &comment.Content); err != nil {
+			break
+		}
+
+		comment.PostId = postId
+		comments = append(comments, comment)
+	}
+
+	if rows.Err() != nil {
+		err = rows.Err()
+	}
+
+	if err != nil {
+		return comments, &UnexpectedError{
+			Action:        "parsing comments",
+			InternalError: err.Error(),
+		}
+	}
+
+	return comments, nil
 }

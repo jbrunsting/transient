@@ -25,6 +25,7 @@ type DatabaseHandler interface {
 	GetFollowingsPosts(id string) ([]models.Post, error)
 	CreateVote(id string, postId string, vote int) error
 	CreateComment(postId string, c models.Comment) error
+	GetComments(postId string) ([]models.Comment, error)
 
 	CreateFollowing(id, followingId string) error
 	GetFollowings(id string) ([]models.User, error)

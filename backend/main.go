@@ -45,6 +45,7 @@ func main() {
 	r.HandleFunc("/post/{id}", a.PostDelete).Methods("DELETE")
 	r.HandleFunc("/post/vote/{id}", a.PostVotePost).Methods("POST")
 	r.HandleFunc("/post/{id}/comment", a.PostCommentPost).Methods("POST")
+	r.HandleFunc("/post/{id}/comments", a.PostCommentsGet).Methods("GET")
 
 	r.HandleFunc("/followings", a.FollowingsGet).Methods("GET")
 	r.HandleFunc("/followings/posts", a.FollowingsPostsGet).Methods("GET")
