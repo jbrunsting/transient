@@ -11,43 +11,43 @@ export default new Router({
         {
             path: '/',
             name: 'home',
-            component: Home,
+            component: Home
         },
         {
             path: '/profile',
             name: 'homeprofile',
-            component: () => import(/* webpackChunkName: "profile" */
-                './views/HomeProfile.vue',
-            ),
+            component: () => import(
+                './views/HomeProfile.vue'
+            )
         },
         {
             path: '/settings',
             name: 'settings',
             component: () => import(/* webpackChunkName: "settings" */
-                './views/Settings',
-            ),
+                './views/Settings'
+            )
         },
         {
             path: '/about',
             name: 'about',
             component: () => import(/* webpackChunkName: "about" */
-                './views/About.vue',
-            ),
+                './views/About.vue'
+            )
         },
         {
             path: '/profile/:username',
             name: 'profile',
             component: () => import(/* webpackChunkName: "profile" */
-                './views/Profile.vue',
-            ),
+                './views/Profile.vue'
+            )
         },
         // TODO: Don't allow unless authenticated
         {
             path: '/following',
             name: 'following',
             component: () => import(/* webpackChunkName: "following" */
-                './views/Following.vue',
-            ),
+                './views/Following.vue'
+            )
         },
     ],
 });

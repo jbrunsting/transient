@@ -1,12 +1,11 @@
-FROM node:8.0.0-alpine
+FROM node:8.16.0-alpine
 
 ENV NODE_ENV development
 
 RUN mkdir /src
 ADD . /src
 WORKDIR /src
-RUN rm package-lock.json
-RUN rm -r node_modules
+RUN rm -rf node_modules
 
 EXPOSE 8080
 

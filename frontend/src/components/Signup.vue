@@ -56,7 +56,7 @@ export default {
                     } else if (e.response.data.kind === this.DATA_VIOLATION) {
                         this.$el.querySelector('.format.error').style.display = 'inline-block';
                     } else {
-                        console.log(`Error: ${e.response.data.message}`);
+                        console.log(e);
                         this.$el.querySelector('.unknown.error').style.display = 'inline-block';
                     }
                 });

@@ -19,7 +19,7 @@ export default {
     name: 'comments',
     props: {
         postId: String,
-        comments: Array
+        comments: Array,
     },
     components: {
         CreateComment,

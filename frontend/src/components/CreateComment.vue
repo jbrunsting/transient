@@ -27,7 +27,7 @@ export default {
         Error,
     },
     methods: {
-        createComment(postId) {
+        createComment() {
             /* eslint-disable no-param-reassign */
             this.$el.querySelectorAll('.error').forEach((c) => {
                 c.style.display = 'none';
@@ -42,7 +42,7 @@ export default {
                     this.content = '';
                     this.$emit('createComment');
                 }).catch((e) => {
-                    console.log(`Error: ${e.response.data.message}`);
+                    console.log(`Error: ${e.response.data}`);
                     this.$el.querySelector('.unknown.error').style.display = 'inline-block';
                 });
             /* eslint-enable no-param-reassign */

@@ -68,15 +68,15 @@ export default {
                 });
         },
         getComments() {
-            if (this.posts.length == 0) {
+            if (this.posts.length === 0) {
                 return;
             }
 
-            this.comments = []
-            const postId = this.posts[0].postId;
+            this.comments = [];
+            const { postId } = this.posts[0];
             this.$http.get(`api/post/${postId}/comments`)
                 .then((response) => {
-                    if (postId == this.posts[0].postId) {
+                    if (postId === this.posts[0].postId) {
                         this.comments = response.data;
                     }
                 })
@@ -109,7 +109,7 @@ export default {
                 this.nextPost();
             }
         },
-        endDrag(e) {
+        endDrag() {
             this.resetHandlers();
 
             this.curTransition = '100ms ease-in-out';
