@@ -23,6 +23,17 @@ services:
         depends_on:
           - dev-db
 
+    dev-recommends:
+        build: ./recommends
+        ports:
+          - 4000:4001
+        networks:
+          - dev-dbnet
+        volumes:
+          - ./recommends:/src
+        depends_on:
+          - dev-db
+
     dev-frontend:
         build: ./frontend
         ports:
