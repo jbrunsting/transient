@@ -1,8 +1,8 @@
 package database
 
 import (
-    "time"
 	"database/sql"
+	"time"
 
 	"github.com/jbrunsting/transient/backend/models"
 )
@@ -159,7 +159,8 @@ func (h *postHandler) GetFollowingsPosts(id string) ([]models.Post, error) {
 func (h *postHandler) CreateVote(id string, postId string, vote int) error {
 	_, err := h.db.Exec(`
 	INSERT INTO Votes (id, postId, time, vote)
-	VALUES ($1, $2, $3, $4)`, id, postId, time.Now(), vote)
+	VALUES ($1, $2, $3, $4)
+    ON CONFLICT ON CONSTRAINT Votes_pkey DO UPDATE SET vote = $4`, id, postId, time.Now(), vote)
 	if err != nil {
 		return formatError(err, "vote", "creating vote")
 	}
