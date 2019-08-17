@@ -1,4 +1,4 @@
-module github.com/jbrunsting/transient/backend
+module github.com/jbrunsting/transient/recommends
 
 require (
 	github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21 // indirect

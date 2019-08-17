@@ -1,0 +1,5 @@
+Recommneder service will load in graph of posts/votes from SQL database on startup (just load in last couple weeks of data, probably). Then the main backend will send it incoming votes so that it can update it's information.
+
+It will propogate weights through the graph, starting from the user, to all posts they have liked and perople they follow, and then weights go from each post to the people who liked it, and from each person to the posts they have liked, for some number of iterations. Can always ensdure first step eliminates any weight from posts the user has already liked so they don't get recommented the same post twicew.
+
+Service should store all data nad recommendations in memoyr, generate a lot of recomenndations on a request for a user and store them utnil they run out.

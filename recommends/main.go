@@ -6,8 +6,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/jbrunsting/transient/backend/api"
-	"github.com/jbrunsting/transient/backend/database"
+	"github.com/jbrunsting/transient/recommends/api"
+	"github.com/jbrunsting/transient/recommends/database"
 )
 
 type response struct {

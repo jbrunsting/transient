@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/jbrunsting/transient/backend/database"
+	"github.com/jbrunsting/transient/recommends/database"
 )
 
 type Api interface {

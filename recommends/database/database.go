@@ -3,11 +3,11 @@ package database
 import (
 	"database/sql"
 
-	"github.com/jbrunsting/transient/backend/models"
+	"github.com/jbrunsting/transient/recommends/models"
 )
 
 type DatabaseHandler interface {
-	GetUserFromId(sessionId string) (models.User, error)
+	GenerateGraph() (map[string]*models.Node, error)
 
 	Close()
 }

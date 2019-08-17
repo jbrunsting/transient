@@ -6,9 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/lib/pq"
-
-	"github.com/jbrunsting/transient/backend/models"
+	"github.com/jbrunsting/transient/recommends/models"
 )
 
 const (
@@ -68,94 +66,54 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					Type:      models.PostNode,
 					Timestamp: postTime,
 				}
-
 			}
 
-			if node, ok := nodes[posterId]; !ok {
-				edge := models.Edge{
+			if posterNode, ok := nodes[posterId]; ok {
+				forwardCreationEdge := models.Edge{
 					Destination: nodes[postId],
 					Type:        models.CreationEdge,
 				}
-				node.Edges = append(node.Edges, edge)
-			}
+				posterNode.Edges = append(posterNode.Edges, forwardCreationEdge)
 
-			if voterId.Valid && vote.Valid {
-				var edgeType int
-				if vote.Int64 == 1 {
-					edgeType = models.UpvoteEdge
-				} else if vote.Int64 == -1 {
-					edgeType = models.DownvoteEdge
-				} else {
-					return nodes, fmt.Errorf("Got unknown vote type %v", vote.Int64)
+				reverseCreationEdge := models.Edge{
+					Destination: posterNode,
+					Type:        models.CreationEdge,
 				}
+                nodes[postId].Edges = append(nodes[postId].Edges, reverseCreationEdge)
 
-				edge := models.Edge{
-					Destination: nodes[postId],
-					Type:        edgeType,
-				}
+				if voterId.Valid && vote.Valid {
+					var edgeType int
+					if vote.Int64 == 1 {
+						edgeType = models.UpvoteEdge
+					} else if vote.Int64 == -1 {
+						edgeType = models.DownvoteEdge
+					} else {
+						return nodes, fmt.Errorf("Got unknown vote type %v", vote.Int64)
+					}
 
-				if node, ok := nodes[voterId.String]; ok {
-					node.Edges = append(node.Edges, edge)
-				} else {
-					log.Printf("Unknown user id from vote, got id %v\n", voterId)
+					forwardVoteEdge := models.Edge{
+						Destination: nodes[postId],
+						Type:        edgeType,
+					}
+
+					if voterNode, ok := nodes[voterId.String]; ok {
+						voterNode.Edges = append(voterNode.Edges, forwardVoteEdge)
+
+						reverseVoteEdge := models.Edge{
+							Destination: voterNode,
+							Type:        edgeType,
+						}
+
+						nodes[postId].Edges = append(nodes[postId].Edges, reverseVoteEdge)
+					} else {
+						log.Printf("Unknown user id from vote, got id %v\n", voterId)
+					}
 				}
+			} else {
+				log.Printf("Unknown poster id, got id %v\n", posterId)
 			}
 		}
 	}
 
 	return nodes, nil
-}
-
-func (h *recommendsHandler) GetUserFromId(id string) (models.User, error) {
-	return h.getUser("Users.id = $1", id)
-}
-
-func (h *recommendsHandler) getUser(whereCondition string, whereArgs ...interface{}) (models.User, error) {
-	var u models.User
-
-	s := fmt.Sprintf(`
-    SELECT Users.id, username, password, email, Sessions.sessionId, Sessions.expiry FROM Users
-	LEFT JOIN Sessions ON Users.id = Sessions.id
-	WHERE %v`, whereCondition)
-	rows, err := h.db.Query(s, whereArgs...)
-	if err != nil {
-		return u, formatError(err, "user", "querying users")
-	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return u, &NotFoundError{"user"}
-	}
-
-	for {
-		var sessionId sql.NullString
-		var expiry pq.NullTime
-		if err = rows.Scan(&u.Id, &u.Username, &u.Password, &u.Email, &sessionId, &expiry); err != nil {
-			break
-		}
-
-		if sessionId.Valid && expiry.Valid {
-			u.Sessions = append(u.Sessions, models.Session{
-				SessionId: sessionId.String,
-				Expiry:    expiry.Time,
-			})
-		}
-
-		if !rows.Next() {
-			break
-		}
-	}
-
-	if rows.Err() != nil {
-		err = rows.Err()
-	}
-
-	if err != nil {
-		return u, &UnexpectedError{
-			Action:        "parsing user",
-			InternalError: err.Error(),
-		}
-	}
-
-	return u, nil
 }
