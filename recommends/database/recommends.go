@@ -79,7 +79,7 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					Destination: posterNode,
 					Type:        models.CreationEdge,
 				}
-                nodes[postId].Edges = append(nodes[postId].Edges, reverseCreationEdge)
+				nodes[postId].Edges = append(nodes[postId].Edges, reverseCreationEdge)
 
 				if voterId.Valid && vote.Valid {
 					var edgeType int

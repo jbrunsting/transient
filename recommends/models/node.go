@@ -5,16 +5,17 @@ import (
 )
 
 const (
-	UserNode = 0
-	PostNode = 1
-    UpvoteEdge = 0
-    DownvoteEdge = 1
-    CreationEdge = 2
+	UserNode     = 0
+	PostNode     = 1
+	UpvoteEdge   = 0
+
+	DownvoteEdge = 1
+	CreationEdge = 2
 )
 
 type Edge struct {
 	Destination *Node
-    Type int // One of Upvote, Downvote, Creation
+	Type        int // One of Upvote, Downvote, Creation
 }
 
 type Node struct {
@@ -22,5 +23,17 @@ type Node struct {
 	Type      int // One of UserNode, PostNode
 	Edges     []Edge
 	Timestamp time.Time
-	Weight    float64
+	Weights   map[string]float64
+}
+
+type EdgeResource struct {
+	SourceId      string `json:"sourceId"`
+	DestinationId string `json:"destinationId"`
+	Type          int    `json:"type"`
+}
+
+type NodeResource struct {
+	Id        string    `json:"id"`
+	Type      int       `json:"type"`
+	Timestamp time.Time `json:"timestamp"`
 }

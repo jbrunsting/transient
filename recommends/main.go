@@ -26,7 +26,12 @@ func main() {
 	}
 	defer databaseHandler.Close()
 
-	a := api.NewApi(databaseHandler)
+    graph, err := databaseHandler.GenerateGraph()
+    if err != nil {
+        panic(err)
+    }
+
+	a := api.NewApi(graph)
 
 	r.HandleFunc("/recommends/{id}", a.RecommendsGet).Methods("GET")
 
