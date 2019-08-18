@@ -16,35 +16,6 @@ type recommendsApi struct {
 	graph map[string]*models.Node
 }
 
-func formatEdges(edges []models.Edge) string {
-	edgeStrings := []string{}
-	for _, edge := range edges {
-		d := ""
-		if edge.Destination.Type == models.UserNode {
-			d = "u"
-		} else if edge.Destination.Type == models.PostNode {
-			d = "p"
-		} else {
-			d = "?"
-		}
-
-		t := ""
-		if edge.Type == models.CreationEdge {
-			t = "c"
-		} else if edge.Type == models.UpvoteEdge {
-			t = "+"
-		} else if edge.Type == models.DownvoteEdge {
-			t = "-"
-		} else {
-			t = "?"
-		}
-
-		edgeStrings = append(edgeStrings, fmt.Sprintf("%v -> %v-%v", t, d, edge.Destination.Id[0:5]))
-	}
-
-	return "[" + strings.Join(edgeStrings, ", ") + "]"
-}
-
 func (a *recommendsApi) NodePost(w http.ResponseWriter, r *http.Request) {
 	var n models.NodeResource
 	err := json.NewDecoder(r.Body).Decode(&n)
@@ -94,13 +65,42 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 		var edge models.Edge
 		edge.Destination = a.graph[e.DestinationId]
 		edge.Type = e.Type
-		a.graph[e.SourceId].Edges = append(a.graph[e.SourceId].Edges, edge)
+		a.graph[e.SourceId].AddEdge(edge)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	} else {
 		http.Error(w, "Invalid source id", http.StatusBadRequest)
 	}
+}
+
+func formatEdges(edges map[string]models.Edge) string {
+	edgeStrings := []string{}
+	for _, edge := range edges {
+		d := ""
+		if edge.Destination.Type == models.UserNode {
+			d = "u"
+		} else if edge.Destination.Type == models.PostNode {
+			d = "p"
+		} else {
+			d = "?"
+		}
+
+		t := ""
+		if edge.Type == models.CreationEdge {
+			t = "c"
+		} else if edge.Type == models.UpvoteEdge {
+			t = "+"
+		} else if edge.Type == models.DownvoteEdge {
+			t = "-"
+		} else {
+			t = "?"
+		}
+
+		edgeStrings = append(edgeStrings, fmt.Sprintf("%v -> %v-%v", t, d, edge.Destination.Id[0:5]))
+	}
+
+	return "[" + strings.Join(edgeStrings, ", ") + "]"
 }
 
 func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {

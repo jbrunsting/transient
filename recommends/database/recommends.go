@@ -73,13 +73,13 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					Destination: nodes[postId],
 					Type:        models.CreationEdge,
 				}
-				posterNode.Edges = append(posterNode.Edges, forwardCreationEdge)
+				posterNode.AddEdge(forwardCreationEdge)
 
 				reverseCreationEdge := models.Edge{
 					Destination: posterNode,
 					Type:        models.CreationEdge,
 				}
-				nodes[postId].Edges = append(nodes[postId].Edges, reverseCreationEdge)
+				nodes[postId].AddEdge(reverseCreationEdge)
 
 				if voterId.Valid && vote.Valid {
 					var edgeType int
@@ -97,14 +97,14 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					}
 
 					if voterNode, ok := nodes[voterId.String]; ok {
-						voterNode.Edges = append(voterNode.Edges, forwardVoteEdge)
+						voterNode.AddEdge(forwardVoteEdge)
 
 						reverseVoteEdge := models.Edge{
 							Destination: voterNode,
 							Type:        edgeType,
 						}
 
-						nodes[postId].Edges = append(nodes[postId].Edges, reverseVoteEdge)
+						nodes[postId].AddEdge(reverseVoteEdge)
 					} else {
 						log.Printf("Unknown user id from vote, got id %v\n", voterId)
 					}

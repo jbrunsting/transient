@@ -21,7 +21,7 @@ type Edge struct {
 type Node struct {
 	Id        string
 	Type      int // One of UserNode, PostNode
-	Edges     []Edge
+	Edges     map[string]Edge
 	Timestamp time.Time
 	Weights   map[string]float64
 }
@@ -36,4 +36,8 @@ type NodeResource struct {
 	Id        string    `json:"id"`
 	Type      int       `json:"type"`
 	Timestamp time.Time `json:"timestamp"`
+}
+
+func (n *Node) AddEdge(e Edge) {
+	n.Edges[e.Destination.Id] = e
 }
