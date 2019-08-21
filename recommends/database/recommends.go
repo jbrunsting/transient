@@ -35,12 +35,13 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 			// better
 			log.Printf("Error reading user row: %s\n", err)
 		} else {
+            node.Weights = map[string]float64{}
 			nodes[node.Id] = &node
 		}
 	}
 
 	lookback := time.Now().AddDate(0, 0, -lookbackDays)
-	s = `SELECT Posts.id, Posts.postId, Posts.time, Votes.id, Votes.vote FROM Posts
+	s = `SELECT Posts.id, Posts.postId, Posts.time, Votes.id, Votes.vote, Votes.time FROM Posts
     LEFT JOIN Votes ON Votes.postId = Posts.postId WHERE Posts.time > $1`
 	voteRows, err := h.db.Query(s, lookback)
 	if err != nil {
@@ -53,8 +54,9 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 	var postTime time.Time
 	var voterId sql.NullString
 	var vote sql.NullInt64
+    var voteTime *time.Time
 	for voteRows.Next() {
-		if err = voteRows.Scan(&posterId, &postId, &postTime, &voterId, &vote); err != nil {
+		if err = voteRows.Scan(&posterId, &postId, &postTime, &voterId, &vote, &voteTime); err != nil {
 			// Don't return error because we don't want a single error to abort
 			// the whole operation. In the future, we may want to handle this
 			// better
@@ -65,6 +67,7 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					Id:        postId,
 					Type:      models.PostNode,
 					Timestamp: postTime,
+					Weights: map[string]float64{},
 				}
 			}
 
@@ -72,12 +75,14 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 				forwardCreationEdge := models.Edge{
 					Destination: nodes[postId],
 					Type:        models.CreationEdge,
+                    Timestamp:   postTime,
 				}
 				posterNode.AddEdge(forwardCreationEdge)
 
 				reverseCreationEdge := models.Edge{
 					Destination: posterNode,
 					Type:        models.CreationEdge,
+                    Timestamp:   postTime,
 				}
 				nodes[postId].AddEdge(reverseCreationEdge)
 
@@ -94,6 +99,7 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					forwardVoteEdge := models.Edge{
 						Destination: nodes[postId],
 						Type:        edgeType,
+                        Timestamp:   *voteTime,
 					}
 
 					if voterNode, ok := nodes[voterId.String]; ok {
@@ -102,6 +108,7 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 						reverseVoteEdge := models.Edge{
 							Destination: voterNode,
 							Type:        edgeType,
+                            Timestamp:   *voteTime,
 						}
 
 						nodes[postId].AddEdge(reverseVoteEdge)

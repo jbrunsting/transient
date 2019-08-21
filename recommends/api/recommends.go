@@ -5,12 +5,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
+    "time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/jbrunsting/transient/recommends/models"
 )
+
+const (
+    // Only use the first 5000 edges
+	maxEdges = 5000
+	startingWeight = 1000000000
+	maxAgeHours = 720
+    recommendsIterations = 10
+)
+
+var typeFractions = map[int]float64{
+	models.CreationEdge: 0.1,
+	models.UpvoteEdge:   0.004,
+	models.DownvoteEdge: -0.02,
+	models.FollowEdge:   0.2, // TODO: support
+}
 
 type recommendsApi struct {
 	graph map[string]*models.Node
@@ -65,6 +82,7 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 		var edge models.Edge
 		edge.Destination = a.graph[e.DestinationId]
 		edge.Type = e.Type
+        edge.Timestamp = e.Timestamp
 		a.graph[e.SourceId].AddEdge(edge)
 
 		w.Header().Set("Content-Type", "application/json")
@@ -74,7 +92,7 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func formatEdges(edges map[string]models.Edge) string {
+func formatEdges(edges []models.Edge) string {
 	edgeStrings := []string{}
 	for _, edge := range edges {
 		d := ""
@@ -103,12 +121,92 @@ func formatEdges(edges map[string]models.Edge) string {
 	return "[" + strings.Join(edgeStrings, ", ") + "]"
 }
 
+func updateWeights(nodes []*models.Node, id string, now time.Time) []*models.Node {
+	updatedWeights := map[*models.Node]float64{}
+	for _, node := range nodes {
+		for i := 0; i < len(node.Edges) && i < maxEdges; i++ {
+			edge := node.Edges[i]
+
+			if _, ok := updatedWeights[edge.Destination]; !ok {
+				updatedWeights[edge.Destination] = 0
+			}
+
+			updatedWeights[edge.Destination] += node.Weights[id] * typeFractions[edge.Type]
+		}
+	}
+
+    // Apply time penalty to posts
+	for node, _ := range updatedWeights {
+        if node.Type == models.PostNode {
+            node.Weights[id] *= (maxAgeHours - now.Sub(node.Timestamp).Hours()) / maxAgeHours
+            if node.Weights[id] < 0 {
+                node.Weights[id] = 0
+            }
+        }
+    }
+
+	updated := []*models.Node{}
+	for node, weight := range updatedWeights {
+		updated = append(updated, node)
+		if node.Weights[id] < weight {
+			node.Weights[id] = weight
+		}
+	}
+
+	return updated
+}
+
+func GenerateRecommends(start *models.Node) []*models.Node {
+	id := start.Id
+
+	nodes := []*models.Node{start}
+	seen := map[*models.Node]bool{start: true}
+
+	start.Weights[id] = startingWeight
+
+    // TODO: Can use smaller number of iterations initially, and then in
+    // background do more iterations to get more recommendations
+	now := time.Now()
+    for i := 0; i < recommendsIterations; i++ {
+		nodes = updateWeights(nodes, id, now)
+		for _, node := range nodes {
+			seen[node] = true
+		}
+    }
+
+	// Eliminate any nodes which have already been voted on
+	for _, edge := range start.Edges {
+		if edge.Destination.Type == models.PostNode {
+			edge.Destination.Weights[id] = 0
+		}
+	}
+
+	recommends := []*models.Node{}
+	for node, _ := range seen {
+        if node.Type == models.PostNode && node.Weights[id] > 0 {
+            recommends = append(recommends, node)
+        }
+	}
+
+	sort.Slice(recommends, func(i, j int) bool {
+		return recommends[i].Weights[start.Id] < recommends[j].Weights[start.Id]
+	})
+
+	return recommends
+}
+
 func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id, ok := vars["id"]
 	if !ok {
 		http.Error(w, "Must provide an id", http.StatusBadRequest)
+		return
+	}
+
+	node, ok := a.graph[id]
+	if !ok {
+		http.Error(w, "Unknown ID", http.StatusBadRequest)
 		return
 	}
 
@@ -137,6 +235,12 @@ func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {
 				log.Printf("  %v -> %v%v\n", t, edge.Destination.Id[0:5], p)
 			}
 		}
+	}
+
+	recommends := GenerateRecommends(node)
+	log.Printf("Recommends:")
+	for _, node := range recommends {
+		log.Printf(node.Id[0:5])
 	}
 
 	w.Header().Set("Content-Type", "application/json")
