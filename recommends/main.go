@@ -34,6 +34,8 @@ func main() {
 	a := api.NewApi(graph)
 
 	r.HandleFunc("/recommends/{id}", a.RecommendsGet).Methods("GET")
+	r.HandleFunc("/edge", a.EdgePost).Methods("POST")
+	r.HandleFunc("/node", a.NodePost).Methods("POST")
 
 	log.Println("Listening on port 4000")
 	http.ListenAndServe(":4000", r)

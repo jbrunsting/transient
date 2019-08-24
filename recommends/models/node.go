@@ -22,6 +22,7 @@ const (
 var edgeRankings = []int{FollowEdge, CreationEdge, DownvoteEdge, UpvoteEdge}
 
 type Edge struct {
+	Source      *Node
 	Destination *Node
 	Type        int // One of Upvote, Downvote, Creation
 	Timestamp   time.Time
@@ -49,16 +50,7 @@ type NodeResource struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func (n *Node) AddEdge(e Edge) {
-	if _, ok := n.Destinations[e.Destination.Id]; !ok {
-		if n.Edges == nil {
-			n.Edges = []Edge{}
-		}
-		n.Edges = append(n.Edges, e)
-	}
-
-	// TODO: This is probably slow, since we are sorting every time we add an
-	// edge, instead of just inserting in sorted order
+func (n *Node) SortEdges() {
 	sort.Slice(n.Edges, func(i, j int) bool {
 		ei := n.Edges[i]
 		ej := n.Edges[j]
@@ -82,4 +74,29 @@ func (n *Node) AddEdge(e Edge) {
 
 		return false
 	})
+}
+
+func AddBidirectionalEdge(e Edge) {
+	if _, ok := e.Source.Destinations[e.Destination.Id]; !ok {
+		if e.Source.Edges == nil {
+			e.Source.Edges = []Edge{}
+			e.Source.Destinations = map[string]bool{}
+		}
+		e.Source.Edges = append(e.Source.Edges, e)
+		e.Source.Destinations[e.Destination.Id] = true
+	}
+
+	if _, ok := e.Destination.Destinations[e.Source.Id]; !ok {
+		if e.Destination.Edges == nil {
+			e.Destination.Edges = []Edge{}
+			e.Destination.Destinations = map[string]bool{}
+		}
+		e.Destination.Edges = append(e.Destination.Edges, e)
+		e.Destination.Destinations[e.Source.Id] = true
+	}
+
+	// TODO: This is probably slow, since we are sorting every time we add an
+	// edge, instead of just inserting in sorted order
+	e.Source.SortEdges()
+	e.Destination.SortEdges()
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
@@ -98,6 +99,12 @@ func (a *userApi) UserPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	storeSessionCookie(w, s)
+
+    addRecommendsNode(&nodeResource{
+        Id: u.Id,
+        Type: userNode,
+        Timestamp: time.Now(),
+    })
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

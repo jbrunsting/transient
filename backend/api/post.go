@@ -75,6 +75,20 @@ func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+    // TODO: Run concurrently, first must terminate first
+    addRecommendsNode(&nodeResource{
+        Id: p.PostId,
+        Type: postNode,
+        Timestamp: p.Time,
+    })
+
+    addRecommendsEdge(&edgeResource{
+        SourceId: p.Id,
+        DestinationId: p.PostId,
+		Type: creationEdge,
+		Timestamp: p.Time,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
@@ -154,11 +168,28 @@ func (a *postApi) PostVotePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	v.Time = time.Now()
+
 	err = a.db.CreateVote(u.Id, postId, v.Vote)
 	if err != nil {
 		handleDbErr(err, w)
 		return
 	}
+
+    var edgeType int
+    if v.Vote == models.UPVOTE {
+        edgeType = upvoteEdge
+    } else {
+        edgeType = downvoteEdge
+    }
+
+    addRecommendsEdge(&edgeResource{
+        SourceId: u.Id,
+        DestinationId: postId,
+		Type: edgeType,
+		Timestamp: v.Time,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }

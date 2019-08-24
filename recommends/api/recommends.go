@@ -78,15 +78,20 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := a.graph[e.SourceId]; ok {
-		var edge models.Edge
-		edge.Destination = a.graph[e.DestinationId]
-		edge.Type = e.Type
-        edge.Timestamp = e.Timestamp
-		a.graph[e.SourceId].AddEdge(edge)
+	if sourceNode, ok := a.graph[e.SourceId]; ok {
+		if destinationNode, ok := a.graph[e.DestinationId]; ok {
+			var edge models.Edge
+			edge.Source = sourceNode
+			edge.Destination = destinationNode
+			edge.Type = e.Type
+			edge.Timestamp = e.Timestamp
+			models.AddBidirectionalEdge(edge)
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+		} else {
+			http.Error(w, "Invalid destination id", http.StatusBadRequest)
+		}
 	} else {
 		http.Error(w, "Invalid source id", http.StatusBadRequest)
 	}

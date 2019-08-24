@@ -72,19 +72,13 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 			}
 
 			if posterNode, ok := nodes[posterId]; ok {
-				forwardCreationEdge := models.Edge{
+				edge := models.Edge{
+					Source: posterNode,
 					Destination: nodes[postId],
 					Type:        models.CreationEdge,
                     Timestamp:   postTime,
 				}
-				posterNode.AddEdge(forwardCreationEdge)
-
-				reverseCreationEdge := models.Edge{
-					Destination: posterNode,
-					Type:        models.CreationEdge,
-                    Timestamp:   postTime,
-				}
-				nodes[postId].AddEdge(reverseCreationEdge)
+				models.AddBidirectionalEdge(edge)
 
 				if voterId.Valid && vote.Valid {
 					var edgeType int
@@ -96,22 +90,14 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 						return nodes, fmt.Errorf("Got unknown vote type %v", vote.Int64)
 					}
 
-					forwardVoteEdge := models.Edge{
-						Destination: nodes[postId],
-						Type:        edgeType,
-                        Timestamp:   *voteTime,
-					}
-
 					if voterNode, ok := nodes[voterId.String]; ok {
-						voterNode.AddEdge(forwardVoteEdge)
-
-						reverseVoteEdge := models.Edge{
-							Destination: voterNode,
+						edge := models.Edge{
+							Source: voterNode,
+							Destination: nodes[postId],
 							Type:        edgeType,
                             Timestamp:   *voteTime,
 						}
-
-						nodes[postId].AddEdge(reverseVoteEdge)
+						models.AddBidirectionalEdge(edge)
 					} else {
 						log.Printf("Unknown user id from vote, got id %v\n", voterId)
 					}
