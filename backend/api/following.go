@@ -64,6 +64,12 @@ func (a *followingApi) FollowingPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+    addRecommendsEdge(&edgeResource{
+        SourceId: u.Id,
+        DestinationId: id,
+		Type: followEdge,
+	}, false)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }

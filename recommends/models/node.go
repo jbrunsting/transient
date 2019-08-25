@@ -12,7 +12,7 @@ const (
 	UpvoteEdge   = 0
 	DownvoteEdge = 1
 	CreationEdge = 2
-	FollowEdge   = 3 // TODO: Still have to add followings to graph
+	FollowEdge   = 3
 
 	// Edges will be given priority over edges which are hourDiffForPriority
 	// hours older, regardless of type
@@ -76,7 +76,7 @@ func (n *Node) SortEdges() {
 	})
 }
 
-func AddBidirectionalEdge(e Edge) {
+func AddEdge(e Edge) {
 	if _, ok := e.Source.Destinations[e.Destination.Id]; !ok {
 		if e.Source.Edges == nil {
 			e.Source.Edges = []Edge{}
@@ -86,17 +86,5 @@ func AddBidirectionalEdge(e Edge) {
 		e.Source.Destinations[e.Destination.Id] = true
 	}
 
-	if _, ok := e.Destination.Destinations[e.Source.Id]; !ok {
-		if e.Destination.Edges == nil {
-			e.Destination.Edges = []Edge{}
-			e.Destination.Destinations = map[string]bool{}
-		}
-		e.Destination.Edges = append(e.Destination.Edges, e)
-		e.Destination.Destinations[e.Source.Id] = true
-	}
-
-	// TODO: This is probably slow, since we are sorting every time we add an
-	// edge, instead of just inserting in sorted order
 	e.Source.SortEdges()
-	e.Destination.SortEdges()
 }

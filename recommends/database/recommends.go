@@ -35,9 +35,40 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 			// better
 			log.Printf("Error reading user row: %s\n", err)
 		} else {
-            node.Weights = map[string]float64{}
+			node.Weights = map[string]float64{}
 			nodes[node.Id] = &node
 		}
+	}
+
+	s = `SELECT id, followingId FROM Followings`
+	followingsRows, err := h.db.Query(s)
+	if err != nil {
+		return nodes, formatError(err, "followings", "querying followings")
+	}
+	defer followingsRows.Close()
+
+	for followingsRows.Next() {
+		var id string
+		var followingId string
+		if err = followingsRows.Scan(&id, &followingId); err != nil {
+            log.Printf("Error scanning followings rows: %v\n", err)
+        } else {
+			if follower, ok := nodes[id]; ok {
+				if following, ok := nodes[followingId]; ok {
+					var edge models.Edge
+					edge.Source = follower
+					edge.Destination = following
+					edge.Type = models.FollowEdge
+					models.AddEdge(edge)
+					edge.Source, edge.Destination = edge.Destination, edge.Source
+					models.AddEdge(edge)
+				} else {
+					log.Printf("Unknown following, got id %v\n", id)
+				}
+			} else {
+				log.Printf("Unknown follower, got id %v\n", id)
+			}
+        }
 	}
 
 	lookback := time.Now().AddDate(0, 0, -lookbackDays)
@@ -54,7 +85,7 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 	var postTime time.Time
 	var voterId sql.NullString
 	var vote sql.NullInt64
-    var voteTime *time.Time
+	var voteTime *time.Time
 	for voteRows.Next() {
 		if err = voteRows.Scan(&posterId, &postId, &postTime, &voterId, &vote, &voteTime); err != nil {
 			// Don't return error because we don't want a single error to abort
@@ -67,18 +98,18 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					Id:        postId,
 					Type:      models.PostNode,
 					Timestamp: postTime,
-					Weights: map[string]float64{},
+					Weights:   map[string]float64{},
 				}
 			}
 
 			if posterNode, ok := nodes[posterId]; ok {
 				edge := models.Edge{
-					Source: posterNode,
+					Source:      posterNode,
 					Destination: nodes[postId],
 					Type:        models.CreationEdge,
-                    Timestamp:   postTime,
+					Timestamp:   postTime,
 				}
-				models.AddBidirectionalEdge(edge)
+				models.AddEdge(edge)
 
 				if voterId.Valid && vote.Valid {
 					var edgeType int
@@ -92,12 +123,14 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 
 					if voterNode, ok := nodes[voterId.String]; ok {
 						edge := models.Edge{
-							Source: voterNode,
+							Source:      voterNode,
 							Destination: nodes[postId],
 							Type:        edgeType,
-                            Timestamp:   *voteTime,
+							Timestamp:   *voteTime,
 						}
-						models.AddBidirectionalEdge(edge)
+						models.AddEdge(edge)
+						edge.Source, edge.Destination = edge.Destination, edge.Source
+						models.AddEdge(edge)
 					} else {
 						log.Printf("Unknown user id from vote, got id %v\n", voterId)
 					}

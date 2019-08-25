@@ -85,7 +85,9 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 			edge.Destination = destinationNode
 			edge.Type = e.Type
 			edge.Timestamp = e.Timestamp
-			models.AddBidirectionalEdge(edge)
+			models.AddEdge(edge)
+            edge.Destination, edge.Source = edge.Source, edge.Destination
+            models.AddEdge(edge)
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -116,6 +118,8 @@ func formatEdges(edges []models.Edge) string {
 			t = "+"
 		} else if edge.Type == models.DownvoteEdge {
 			t = "-"
+		} else if edge.Type == models.FollowEdge {
+			t = "f"
 		} else {
 			t = "?"
 		}
@@ -232,6 +236,8 @@ func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {
 						t = "+"
 					} else if edge.Type == models.DownvoteEdge {
 						t = "-"
+					} else if edge.Type == models.FollowEdge {
+						t = "f"
 					} else {
 						t = "?"
 					}

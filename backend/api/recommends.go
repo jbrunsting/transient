@@ -31,7 +31,7 @@ type nodeResource struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func addRecommendsEdge(e *edgeResource) {
+func addRecommendsEdge(e *edgeResource, bidirectional bool) {
 	body, err := json.Marshal(e)
 	if err != nil {
 		log.Printf("Error marshalling object as json: %v\n", err)
@@ -40,6 +40,12 @@ func addRecommendsEdge(e *edgeResource) {
 	_, err = http.Post("http://dev-recommends:4001/edge", "image/jpeg", bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("Error adding recommends edge: %v\n", err)
+	}
+
+	if bidirectional {
+		reverse := *e
+		reverse.SourceId, reverse.DestinationId = reverse.DestinationId, reverse.SourceId
+		addRecommendsEdge(&reverse, false)
 	}
 }
 

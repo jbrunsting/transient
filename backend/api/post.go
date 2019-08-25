@@ -87,7 +87,7 @@ func (a *postApi) PostPost(w http.ResponseWriter, r *http.Request) {
         DestinationId: p.PostId,
 		Type: creationEdge,
 		Timestamp: p.Time,
-	})
+	}, true)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -188,7 +188,7 @@ func (a *postApi) PostVotePost(w http.ResponseWriter, r *http.Request) {
         DestinationId: postId,
 		Type: edgeType,
 		Timestamp: v.Time,
-	})
+	}, true)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
