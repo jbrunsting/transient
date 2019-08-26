@@ -55,7 +55,7 @@ func addRecommendsNode(n *nodeResource) {
 		log.Printf("Error marshalling object as json: %v\n", err)
 	}
 
-	_, err = http.Post("http://localhost:4001/node", "image/jpeg", bytes.NewBuffer(body))
+	_, err = http.Post("http://dev-recommends:4001/node", "image/jpeg", bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("Error adding recommends edge: %v\n", err)
 	}

@@ -60,8 +60,6 @@ func (h *recommendsHandler) GenerateGraph() (map[string]*models.Node, error) {
 					edge.Destination = following
 					edge.Type = models.FollowEdge
 					models.AddEdge(edge)
-					edge.Source, edge.Destination = edge.Destination, edge.Source
-					models.AddEdge(edge)
 				} else {
 					log.Printf("Unknown following, got id %v\n", id)
 				}

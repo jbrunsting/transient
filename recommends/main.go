@@ -33,7 +33,8 @@ func main() {
 
 	a := api.NewApi(graph)
 
-	r.HandleFunc("/recommends/{id}", a.RecommendsGet).Methods("GET")
+	r.HandleFunc("/posts/{id}", a.PostsGet).Methods("GET")
+	r.HandleFunc("/followings/{id}", a.FollowingsGet).Methods("GET")
 	r.HandleFunc("/edge", a.EdgePost).Methods("POST")
 	r.HandleFunc("/node", a.NodePost).Methods("POST")
 

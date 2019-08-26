@@ -9,7 +9,8 @@ import (
 type Api interface {
 	NodePost(w http.ResponseWriter, r *http.Request)
 	EdgePost(w http.ResponseWriter, r *http.Request)
-	RecommendsGet(w http.ResponseWriter, r *http.Request)
+	PostsGet(w http.ResponseWriter, r *http.Request)
+	FollowingsGet(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {

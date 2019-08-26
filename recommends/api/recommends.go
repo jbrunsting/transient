@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-    "time"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -15,11 +15,11 @@ import (
 )
 
 const (
-    // Only use the first 5000 edges
-	maxEdges = 5000
-	startingWeight = 1000000000
-	maxAgeHours = 720
-    recommendsIterations = 10
+	// Only use the first 5000 edges
+	maxEdges             = 5000
+	startingWeight       = 1000000000
+	maxAgeHours          = 720
+	recommendsIterations = 10
 )
 
 var typeFractions = map[int]float64{
@@ -86,8 +86,8 @@ func (a *recommendsApi) EdgePost(w http.ResponseWriter, r *http.Request) {
 			edge.Type = e.Type
 			edge.Timestamp = e.Timestamp
 			models.AddEdge(edge)
-            edge.Destination, edge.Source = edge.Source, edge.Destination
-            models.AddEdge(edge)
+			edge.Destination, edge.Source = edge.Source, edge.Destination
+			models.AddEdge(edge)
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -144,19 +144,19 @@ func updateWeights(nodes []*models.Node, id string, now time.Time) []*models.Nod
 		}
 	}
 
-    // Apply time penalty to posts
-	for node, _ := range updatedWeights {
-        if node.Type == models.PostNode {
-            node.Weights[id] *= (maxAgeHours - now.Sub(node.Timestamp).Hours()) / maxAgeHours
-            if node.Weights[id] < 0 {
-                node.Weights[id] = 0
-            }
-        }
-    }
+	// Apply time penalty to posts
+	for node := range updatedWeights {
+		if node.Type == models.PostNode {
+			updatedWeights[node] *= (maxAgeHours - now.Sub(node.Timestamp).Hours()) / maxAgeHours
+		}
+	}
 
 	updated := []*models.Node{}
 	for node, weight := range updatedWeights {
 		updated = append(updated, node)
+		if node.Weights == nil {
+			node.Weights = map[string]float64{}
+		}
 		if node.Weights[id] < weight {
 			node.Weights[id] = weight
 		}
@@ -165,7 +165,7 @@ func updateWeights(nodes []*models.Node, id string, now time.Time) []*models.Nod
 	return updated
 }
 
-func GenerateRecommends(start *models.Node) []*models.Node {
+func GenerateRecommends(start *models.Node, nodeType int) []*models.Node {
 	id := start.Id
 
 	nodes := []*models.Node{start}
@@ -173,28 +173,28 @@ func GenerateRecommends(start *models.Node) []*models.Node {
 
 	start.Weights[id] = startingWeight
 
-    // TODO: Can use smaller number of iterations initially, and then in
-    // background do more iterations to get more recommendations
+	// TODO: Can use smaller number of iterations initially, and then in
+	// background do more iterations to get more recommendations
 	now := time.Now()
-    for i := 0; i < recommendsIterations; i++ {
+	for i := 0; i < recommendsIterations; i++ {
 		nodes = updateWeights(nodes, id, now)
 		for _, node := range nodes {
 			seen[node] = true
 		}
-    }
+	}
 
 	// Eliminate any nodes which have already been voted on
 	for _, edge := range start.Edges {
-		if edge.Destination.Type == models.PostNode {
+		if edge.Destination.Type == nodeType {
 			edge.Destination.Weights[id] = 0
 		}
 	}
 
 	recommends := []*models.Node{}
 	for node, _ := range seen {
-        if node.Type == models.PostNode && node.Weights[id] > 0 {
-            recommends = append(recommends, node)
-        }
+		if node.Type == nodeType && node.Weights[id] > 0 {
+			recommends = append(recommends, node)
+		}
 	}
 
 	sort.Slice(recommends, func(i, j int) bool {
@@ -204,24 +204,7 @@ func GenerateRecommends(start *models.Node) []*models.Node {
 	return recommends
 }
 
-func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	id, ok := vars["id"]
-	if !ok {
-		http.Error(w, "Must provide an id", http.StatusBadRequest)
-		return
-	}
-
-	node, ok := a.graph[id]
-	if !ok {
-		http.Error(w, "Unknown ID", http.StatusBadRequest)
-		return
-	}
-
-	log.Printf("ID is %s\n", id)
-
-	log.Printf("Graph:")
+func (a *recommendsApi) printGraph() {
 	for k, _ := range a.graph {
 		if a.graph[k].Type == models.UserNode && len(a.graph[k].Edges) > 0 {
 			log.Printf("u-%v\n", k[0:5])
@@ -247,13 +230,70 @@ func (a *recommendsApi) RecommendsGet(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
 
-	recommends := GenerateRecommends(node)
+func (a *recommendsApi) PostsGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	id, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide an id", http.StatusBadRequest)
+		return
+	}
+
+	node, ok := a.graph[id]
+	if !ok {
+		http.Error(w, "Unknown ID", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("ID is %s\n", id)
+
+	log.Printf("Graph:")
+	a.printGraph()
+
+	recommends := GenerateRecommends(node, models.PostNode)
+	recommendsIds := []string{}
 	log.Printf("Recommends:")
 	for _, node := range recommends {
 		log.Printf(node.Id[0:5])
+		recommendsIds = append(recommendsIds, node.Id)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(recommendsIds)
+}
+
+func (a *recommendsApi) FollowingsGet(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	id, ok := vars["id"]
+	if !ok {
+		http.Error(w, "Must provide an id", http.StatusBadRequest)
+		return
+	}
+
+	node, ok := a.graph[id]
+	if !ok {
+		http.Error(w, "Unknown ID", http.StatusBadRequest)
+		return
+	}
+
+	log.Printf("ID is %s\n", id)
+
+	log.Printf("Graph:")
+	a.printGraph()
+
+	recommends := GenerateRecommends(node, models.UserNode)
+	recommendsIds := []string{}
+	log.Printf("Recommends:")
+	for _, node := range recommends {
+		log.Printf(node.Id[0:5])
+		recommendsIds = append(recommendsIds, node.Id)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(recommendsIds)
 }
