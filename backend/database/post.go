@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/jbrunsting/transient/backend/models"
@@ -22,7 +23,7 @@ func (h *postHandler) CreatePost(p models.Post) error {
 	return nil
 }
 
-func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
+func (h *postHandler) GetUserPosts(id string) ([]models.Post, error) {
 	posts := []models.Post{}
 
 	rows, err := h.db.Query(`
@@ -65,20 +66,42 @@ func (h *postHandler) GetPosts(id string) ([]models.Post, error) {
 }
 
 func (h *postHandler) GetPost(postId string) (models.Post, error) {
-	var post models.Post
+	posts, err := h.GetPosts([]string{postId})
+	if err != nil {
+		return models.Post{}, err
+	}
+	if len(posts) == 0 {
+		return posts[0], &NotFoundError{"post"}
+	}
+	return posts[0], nil
+}
+
+func (h *postHandler) GetPosts(postIds []string) ([]models.Post, error) {
+	posts := []models.Post{}
+
+	postIdsInterface := make([]interface{}, len(postIds))
+	for i, postId := range postIds {
+		postIdsInterface[i] = postId
+	}
+
+	inQuery := "$1"
+	for i := 2; i < len(postIds)+1; i++ {
+		inQuery += fmt.Sprintf(", $%v", i)
+	}
 
 	rows, err := h.db.Query(`
 	SELECT Posts.id, Users.username, postId, time, title, content, postUrl, imageUrl
 	FROM Posts
 	INNER JOIN Users ON Users.id = Posts.id
-    WHERE postId = $1
-    `, postId)
+    WHERE postId IN (`+inQuery+`)
+	`, postIdsInterface...)
 	if err != nil {
-		return post, formatError(err, "post", "retrieving post")
+		return posts, formatError(err, "post", "retrieving posts")
 	}
 	defer rows.Close()
 
-	if rows.Next() {
+	for rows.Next() && err == nil {
+		var post models.Post
 		var content sql.NullString
 		var postUrl sql.NullString
 		var imageUrl sql.NullString
@@ -86,8 +109,7 @@ func (h *postHandler) GetPost(postId string) (models.Post, error) {
 		post.Content = content.String
 		post.PostUrl = postUrl.String
 		post.ImageUrl = imageUrl.String
-	} else if rows.Err() == nil {
-		return post, &NotFoundError{"post"}
+		posts = append(posts, post)
 	}
 
 	if rows.Err() != nil {
@@ -95,13 +117,13 @@ func (h *postHandler) GetPost(postId string) (models.Post, error) {
 	}
 
 	if err != nil {
-		return post, &UnexpectedError{
-			Action:        "parsing user",
+		return posts, &UnexpectedError{
+			Action:        "parsing posts",
 			InternalError: err.Error(),
 		}
 	}
 
-	return post, nil
+	return posts, nil
 }
 
 func (h *postHandler) DeletePost(postId string) error {

@@ -18,8 +18,9 @@ type DatabaseHandler interface {
 	ChangePassword(id string, password string) error
 	SearchUsers(search string, limit int) ([]models.User, error)
 
-	GetPosts(id string) ([]models.Post, error)
+	GetUserPosts(id string) ([]models.Post, error)
 	GetPost(postId string) (models.Post, error)
+	GetPosts(postIds []string) ([]models.Post, error)
 	CreatePost(p models.Post) error
 	DeletePost(postId string) error
 	GetFollowingsPosts(id string) ([]models.Post, error)
@@ -38,7 +39,7 @@ type databaseHandler struct {
 	db *sql.DB
 	userHandler
 	postHandler
-	followingHandler	
+	followingHandler
 }
 
 func NewDatabaseHandler() (DatabaseHandler, error) {

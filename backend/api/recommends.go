@@ -6,7 +6,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/jbrunsting/transient/backend/database"
 )
+
+type recommendsApi struct {
+	db database.DatabaseHandler
+}
 
 const (
 	userNode = 0
@@ -37,7 +43,7 @@ func addRecommendsEdge(e *edgeResource, bidirectional bool) {
 		log.Printf("Error marshalling object as json: %v\n", err)
 	}
 
-	_, err = http.Post("http://dev-recommends:4001/edge", "image/jpeg", bytes.NewBuffer(body))
+	_, err = http.Post("http://dev-recommends:4001/edge", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("Error adding recommends edge: %v\n", err)
 	}
@@ -55,8 +61,48 @@ func addRecommendsNode(n *nodeResource) {
 		log.Printf("Error marshalling object as json: %v\n", err)
 	}
 
-	_, err = http.Post("http://dev-recommends:4001/node", "image/jpeg", bytes.NewBuffer(body))
+	_, err = http.Post("http://dev-recommends:4001/node", "application/json", bytes.NewBuffer(body))
 	if err != nil {
 		log.Printf("Error adding recommends edge: %v\n", err)
 	}
+}
+
+func (a *recommendsApi) RecommendsPostsGet(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+    resp, err := http.Get("http://dev-recommends:4001/posts/" + u.Id)
+	if err != nil {
+		log.Printf("Error getting recommended posts, %v\n", err)
+		http.Error(w, "Could not generate post recommendations", http.StatusServiceUnavailable)
+		return
+	}
+	defer resp.Body.Close()
+
+	postIds := []string{}
+	err = json.NewDecoder(resp.Body).Decode(&postIds)
+	if err != nil {
+		log.Printf("Error decoding recommended posts, %v\n", err)
+		http.Error(w, "Could not generate post recommendations", http.StatusServiceUnavailable)
+		return
+	}
+
+	posts, err := a.db.GetPosts(postIds)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(posts)
 }

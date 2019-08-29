@@ -30,14 +30,17 @@ type Api interface {
 	FollowingPost(w http.ResponseWriter, r *http.Request)
 	FollowingDelete(w http.ResponseWriter, r *http.Request)
 	FollowingsPostsGet(w http.ResponseWriter, r *http.Request)
+
+	RecommendsPostsGet(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {
 	userApi
 	postApi
 	followingApi
+	recommendsApi
 }
 
 func NewApi(db database.DatabaseHandler) Api {
-    return &api{userApi: userApi{db: db}, postApi: postApi{db: db}, followingApi: followingApi{db: db}}
+	return &api{userApi: userApi{db: db}, postApi: postApi{db: db}, followingApi: followingApi{db: db}, recommendsApi: recommendsApi{db: db}}
 }

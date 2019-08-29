@@ -27,7 +27,7 @@ func (a *postApi) PostsGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := a.db.GetPosts(id)
+	posts, err := a.db.GetUserPosts(id)
 	if err != nil {
 		handleDbErr(err, w)
 		return
