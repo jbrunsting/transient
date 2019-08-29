@@ -32,6 +32,7 @@ type Api interface {
 	FollowingsPostsGet(w http.ResponseWriter, r *http.Request)
 
 	RecommendsPostsGet(w http.ResponseWriter, r *http.Request)
+	RecommendsFollowingsGet(w http.ResponseWriter, r *http.Request)
 }
 
 type api struct {

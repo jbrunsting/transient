@@ -25,6 +25,60 @@ func (h *userHandler) GetUserFromId(id string) (models.User, error) {
 	return h.getUser("Users.id = $1", id)
 }
 
+func (h *userHandler) GetBasicUsers(ids []string) ([]models.User, error) {
+	us := []models.User{}
+
+	if len(ids) == 0 {
+		return us, nil
+	}
+
+	idsInterface := make([]interface{}, len(ids))
+	for i, id := range ids {
+		idsInterface[i] = id
+	}
+
+	inQuery := "$1"
+	for i := 2; i < len(ids)+1; i++ {
+		inQuery += fmt.Sprintf(", $%v", i)
+	}
+
+	rows, err := h.db.Query(`
+    SELECT Users.id, username, email FROM Users
+	WHERE Users.id IN (`+inQuery+`)
+    `, idsInterface...)
+	if err != nil {
+		return us, formatError(err, "user", "querying users")
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return us, &NotFoundError{"user"}
+	}
+
+	for rows.Next() {
+		var u models.User
+		err = rows.Scan(&u.Id, &u.Username, &u.Email)
+		if err != nil {
+			break
+		}
+
+		us = append(us, u)
+	}
+
+	if rows.Err() != nil {
+		err = rows.Err()
+	}
+
+	if err != nil {
+		return us, &UnexpectedError{
+			Action:        "parsing users",
+			InternalError: err.Error(),
+		}
+	}
+
+	return us, nil
+}
+
 func (h *userHandler) getUser(whereCondition string, whereArgs ...interface{}) (models.User, error) {
 	var u models.User
 

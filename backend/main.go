@@ -53,6 +53,7 @@ func main() {
 	r.HandleFunc("/following/{id}", a.FollowingDelete).Methods("DELETE")
 
 	r.HandleFunc("/recommends/posts", a.RecommendsPostsGet).Methods("GET")
+	r.HandleFunc("/recommends/followings", a.RecommendsFollowingsGet).Methods("GET")
 
 	log.Println("Listening on port 3000")
 	http.ListenAndServe(":3000", r)

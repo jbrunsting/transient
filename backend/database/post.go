@@ -79,6 +79,10 @@ func (h *postHandler) GetPost(postId string) (models.Post, error) {
 func (h *postHandler) GetPosts(postIds []string) ([]models.Post, error) {
 	posts := []models.Post{}
 
+	if len(postIds) == 0 {
+		return posts, nil
+	}
+
 	postIdsInterface := make([]interface{}, len(postIds))
 	for i, postId := range postIds {
 		postIdsInterface[i] = postId
@@ -100,12 +104,16 @@ func (h *postHandler) GetPosts(postIds []string) ([]models.Post, error) {
 	}
 	defer rows.Close()
 
-	for rows.Next() && err == nil {
+	for rows.Next() {
 		var post models.Post
 		var content sql.NullString
 		var postUrl sql.NullString
 		var imageUrl sql.NullString
 		err = rows.Scan(&post.Id, &post.Username, &post.PostId, &post.Time, &post.Title, &content, &postUrl, &imageUrl)
+		if err != nil {
+			break
+		}
+
 		post.Content = content.String
 		post.PostUrl = postUrl.String
 		post.ImageUrl = imageUrl.String

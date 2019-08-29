@@ -106,3 +106,43 @@ func (a *recommendsApi) RecommendsPostsGet(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(posts)
 }
+
+func (a *recommendsApi) RecommendsFollowingsGet(w http.ResponseWriter, r *http.Request) {
+	sessionId, err := getSessionId(r)
+	if err != nil {
+		http.Error(w, "Not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	u, err := a.db.GetUserFromSession(sessionId)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+    resp, err := http.Get("http://dev-recommends:4001/followings/" + u.Id)
+	if err != nil {
+		log.Printf("Error getting recommended users, %v\n", err)
+		http.Error(w, "Could not generate user recommendations", http.StatusServiceUnavailable)
+		return
+	}
+	defer resp.Body.Close()
+
+	userIds := []string{}
+	err = json.NewDecoder(resp.Body).Decode(&userIds)
+	if err != nil {
+		log.Printf("Error decoding recommended users, %v\n", err)
+		http.Error(w, "Could not generate user recommendations", http.StatusServiceUnavailable)
+		return
+	}
+
+	users, err := a.db.GetBasicUsers(userIds)
+	if err != nil {
+		handleDbErr(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
+}

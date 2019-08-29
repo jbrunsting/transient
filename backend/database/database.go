@@ -10,6 +10,7 @@ type DatabaseHandler interface {
 	GetUserFromUsername(username string) (models.User, error)
 	GetUserFromSession(sessionId string) (models.User, error)
 	GetUserFromId(sessionId string) (models.User, error)
+	GetBasicUsers(ids []string) ([]models.User, error)
 	CreateUser(u models.User, s models.Session) error
 	CreateSession(s models.Session) error
 	DeleteOtherSessions(currentSessionId string) error
@@ -32,7 +33,7 @@ type DatabaseHandler interface {
 	GetFollowings(id string) ([]models.User, error)
 	DeleteFollowing(id, followingId string) error
 
-    Close()
+	Close()
 }
 
 type databaseHandler struct {
