@@ -142,6 +142,8 @@ func (a *recommendsApi) RecommendsFollowingsGet(w http.ResponseWriter, r *http.R
 		return
 	}
 
+    log.Printf("Encoding users: %v", users)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(users)

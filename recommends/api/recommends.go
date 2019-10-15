@@ -257,6 +257,7 @@ func (a *recommendsApi) PostsGet(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Recommends:")
 	for _, node := range recommends {
 		log.Printf(node.Id[0:5])
+        log.Printf("%v\n", node.Weights)
 		recommendsIds = append(recommendsIds, node.Id)
 	}
 

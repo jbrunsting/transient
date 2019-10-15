@@ -42,6 +42,9 @@ func (h *userHandler) GetBasicUsers(ids []string) ([]models.User, error) {
 		inQuery += fmt.Sprintf(", $%v", i)
 	}
 
+	fmt.Printf("In query is %s\n", inQuery)
+	fmt.Printf("Ids are %s\n", idsInterface)
+
 	rows, err := h.db.Query(`
     SELECT Users.id, username, email FROM Users
 	WHERE Users.id IN (`+inQuery+`)
@@ -50,10 +53,6 @@ func (h *userHandler) GetBasicUsers(ids []string) ([]models.User, error) {
 		return us, formatError(err, "user", "querying users")
 	}
 	defer rows.Close()
-
-	if !rows.Next() {
-		return us, &NotFoundError{"user"}
-	}
 
 	for rows.Next() {
 		var u models.User
@@ -76,6 +75,7 @@ func (h *userHandler) GetBasicUsers(ids []string) ([]models.User, error) {
 		}
 	}
 
+	fmt.Printf("Got to end!\n")
 	return us, nil
 }
 

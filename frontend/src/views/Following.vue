@@ -2,6 +2,7 @@
   <div class="following">
     <Nav v-on:auth="updateAuth()" :authenticated="authenticated"/>
     <div class="content">
+      <FollowingRecommends v-on:follow="updateFollowings()"/>
       <Followings v-bind:followings="followings"  v-on:follow="updateFollowings()"/>
       <Follow v-bind:followings="followings" v-on:follow="updateFollowings()"/>
     </div>
@@ -11,6 +12,7 @@
 <script>
 import Nav from '@/components/Nav.vue';
 import Followings from '@/components/Followings.vue';
+import FollowingRecommends from '@/components/FollowingRecommends.vue';
 import Follow from '@/components/Follow.vue';
 
 export default {
@@ -26,6 +28,7 @@ export default {
     components: {
         Nav,
         Followings,
+        FollowingRecommends,
         Follow,
     },
     methods: {

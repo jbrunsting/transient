@@ -59,7 +59,7 @@ export default {
             this.$emit('auth');
         },
         getPosts() {
-            this.$http.get('/api/followings/posts')
+            this.$http.get('/api/recommends/posts')
                 .then((response) => {
                     this.posts = response.data;
                     this.getComments();

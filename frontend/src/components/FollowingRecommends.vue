@@ -1,10 +1,10 @@
 <template>
-  <div class="followings">
+  <div class="followingRecommends">
     <ul>
-      <li class="follow" v-for="user in followings" :key="user.id">
+      <li class="follow" v-for="user in recommends" :key="user.id">
         <p>{{ user.username }}</p>
-        <form @submit.prevent="() => unfollow(user.id)">
-          <button type="submit">Unfollow</button>
+        <form @submit.prevent="() => follow(user.id)">
+          <button type="submit">Follow</button>
         </form>
       </li>
     </ul>
@@ -13,18 +13,25 @@
 
 <script>
 export default {
-    name: 'followings',
+    name: 'followingRecommends',
     data() {
         return {
-            id: '',
-            username: '',
-            email: '',
+            recommends: [],
         };
     },
     props: { authenticated: Boolean, followings: Array },
     methods: {
-        unfollow(id) {
-            this.$http.delete(`/api/following/${id}`)
+        getRecommends() {
+            this.$http.get('/api/recommends/followings')
+                .then((response) => {
+                    console.log(response);
+                    this.recommends = response.data;
+                }).catch((e) => {
+                    console.log(`Error ${JSON.stringify(e)}`);
+                });
+        },
+        follow(id) {
+            this.$http.post(`/api/following/${id}`)
                 .then(() => {
                     this.$emit('follow');
                 })
@@ -32,6 +39,9 @@ export default {
                     console.log(`Error ${JSON.stringify(e)}`);
                 });
         },
+    },
+    created() {
+        this.getRecommends();
     },
 };
 </script>

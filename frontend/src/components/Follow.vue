@@ -1,5 +1,5 @@
 <template>
-  <div class="home">
+  <div class="follow">
     <form @submit.prevent="search">
       <input placeholder="username" v-model="username">
       <button type="submit">Search</button>
@@ -24,7 +24,7 @@
 
 <script>
 export default {
-    name: 'home',
+    name: 'follow',
     data() {
         return {
             username: '',
